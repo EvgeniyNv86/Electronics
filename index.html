@@ -5,179 +5,429 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
 <title>Юный электронщик</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html, body { overscroll-behavior:none; }
-body { font-family:-apple-system,'Segoe UI',Roboto,sans-serif; background:#0e1117; color:#e8eaf0; min-height:100vh; padding:16px 16px 90px; max-width:560px; margin:0 auto; }
-.view { display:none; } .view.active { display:block; animation:fade .25s ease; }
-@keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-h1 { font-size:1.4rem; line-height:1.3; margin-bottom:12px; } h2 { font-size:1.1rem; margin:16px 0 10px; } h3 { font-size:1rem; margin:14px 0 6px; }
-.sub { color:#9aa3b2; font-size:.95rem; line-height:1.5; margin-bottom:18px; }
-.card { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px 16px; margin-bottom:14px; }
-.card p, .card li { font-size:.94rem; line-height:1.5; color:#c6cdd8; }
-.card b { color:#e8eaf0; } .card ul { padding-left:20px; margin-top:6px; }
-button.big { width:100%; padding:16px; font-size:1.05rem; font-weight:600; background:linear-gradient(135deg,#3d7bff,#7b4dff); color:#fff; border:none; border-radius:12px; cursor:pointer; touch-action:manipulation; user-select:none; -webkit-user-select:none; transition:transform .12s ease; }
-button.big:active { transform:scale(.97); } button.big:disabled { opacity:.4; transform:none; }
-a.tile { display:flex; align-items:center; gap:14px; background:#171c26; border:1px solid #262d3a; border-radius:14px; padding:16px; margin-bottom:12px; text-decoration:none; color:#e8eaf0; touch-action:manipulation; user-select:none; -webkit-user-select:none; cursor:pointer; }
-a.tile:active { transform:scale(.985); }
-.tile .ico { font-size:1.6rem; } .tile .tt { font-weight:600; font-size:1rem; } .tile .td { font-size:.85rem; color:#9aa3b2; margin-top:2px; }
-.topbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
-.bar { flex:1; height:6px; background:#262d3a; border-radius:3px; overflow:hidden; } .bar i { display:block; height:100%; width:0%; background:linear-gradient(90deg,#3d7bff,#7b4dff); transition:width .3s ease; }
-.qnum { font-size:.85rem; color:#9aa3b2; white-space:nowrap; }
-.qtext { font-size:1.1rem; line-height:1.45; margin-bottom:18px; font-weight:500; }
-.opt { display:flex; align-items:center; min-height:60px; background:#171c26; border:2px solid #262d3a; border-radius:12px; padding:14px 16px; margin-bottom:12px; cursor:pointer; font-size:1rem; line-height:1.4; touch-action:manipulation; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; transition:border-color .15s ease, background .15s ease; }
-.opt .mark { margin-left:auto; font-weight:700; opacity:0; transition:opacity .15s ease; padding-left:10px; } .opt.sel .mark { opacity:1; color:#3d7bff; } .opt.sel { border-color:#3d7bff; background:#1a2337; }
-.score-big { font-size:2.6rem; font-weight:700; text-align:center; margin:10px 0 4px; }
-.score-cap { text-align:center; color:#9aa3b2; margin-bottom:16px; }
-.verdict { text-align:center; font-size:1.1rem; font-weight:600; margin-bottom:16px; }
-.dots { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:18px; }
-.dot { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:600; }
-.dot.ok { background:#1d3a24; color:#4ade80; } .dot.bad { background:#3a1d1d; color:#f87171; }
-.review { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px; margin-bottom:12px; }
-.review .tag { font-size:.8rem; font-weight:700; margin-bottom:6px; } .tag.ok { color:#4ade80; } .tag.bad { color:#f87171; }
-.review .q { font-size:.95rem; margin-bottom:8px; } .review .ans { font-size:.88rem; color:#c6cdd8; line-height:1.45; } .review .ans b { color:#e8eaf0; }
-/* ---- Навигация ---- */
-nav { position:fixed; left:0; right:0; bottom:0; background:#141922; border-top:1px solid #262d3a; display:flex; justify-content:space-around; padding:8px 4px calc(8px + env(safe-area-inset-bottom)); z-index:10; }
-nav button { flex:1; background:none; border:none; color:#9aa3b2; font-size:.7rem; display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 2px; cursor:pointer; touch-action:manipulation; user-select:none; -webkit-user-select:none; }
-nav button .ni { font-size:1.25rem; } nav button.on { color:#3d7bff; }
-/* ---- Калькулятор резистора ---- */
-.res-visual { display:flex; justify-content:center; margin:14px 0; }
-.res-body { width:150px; height:56px; background:#c8a268; border-radius:10px; position:relative; display:flex; align-items:center; justify-content:center; }
-.res-lead { position:absolute; top:50%; width:34px; height:6px; background:#9aa3b2; } .res-lead.l { left:-30px; } .res-lead.r { right:-30px; }
-.res-band { position:absolute; top:0; bottom:0; width:16px; }
-.sw-row { margin-bottom:12px; } .sw-label { font-size:.85rem; color:#9aa3b2; margin-bottom:6px; }
-.sw-wrap { display:flex; flex-wrap:wrap; gap:8px; }
-.sw { width:40px; height:40px; border-radius:10px; border:2px solid transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; color:#fff; text-shadow:0 0 3px rgba(0,0,0,.8); touch-action:manipulation; user-select:none; -webkit-user-select:none; }
-.sw.none { background:#171c26; border-color:#3d7bff; color:#9aa3b2; text-shadow:none; }
-.sw.sel { border-color:#3d7bff; box-shadow:0 0 0 2px #3d7bff55; }
-.res-out { text-align:center; font-size:1.5rem; font-weight:700; margin:14px 0 4px; } .res-tol { text-align:center; color:#9aa3b2; font-size:.95rem; }
-.ver { position:fixed; bottom:76px; left:0; right:0; text-align:center; font-size:.75rem; color:#4a5464; pointer-events:none; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { overscroll-behavior:none; }
+  body {
+    font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:#0e1117; color:#e8eaf0; min-height:100vh;
+    padding:18px 16px 84px; max-width:520px; margin:0 auto;
+  }
+  h1 { font-size:1.4rem; line-height:1.3; margin-bottom:10px; }
+  h2 { font-size:1.1rem; margin:18px 0 10px; }
+  h3 { font-size:1rem; margin:14px 0 8px; }
+  .sub { color:#9aa3b2; font-size:.95rem; line-height:1.5; margin-bottom:16px; }
+  .page { display:none; }
+  .page.active { display:block; animation:fade .22s ease; }
+  @keyframes fade { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  /* Плитки на главной */
+  .tiles { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+  .tile {
+    flex:1 1 44%; background:#171c26; border:1px solid #262d3a; border-radius:14px;
+    padding:18px 14px; font-size:1.02rem; font-weight:600; cursor:pointer;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
+    transition:border-color .15s ease;
+  }
+  .tile small { display:block; font-weight:400; color:#9aa3b2; font-size:.82rem; margin-top:5px; line-height:1.35; }
+  .tile:active { border-color:#3d7bff; }
+
+  /* Нижнее меню */
+  nav {
+    position:fixed; bottom:0; left:0; right:0; z-index:50;
+    background:#12161f; border-top:1px solid #262d3a;
+    display:flex; justify-content:space-around; padding:6px 2px calc(6px + env(safe-area-inset-bottom));
+    max-width:520px; margin:0 auto;
+  }
+  nav button {
+    flex:1; background:none; border:none; color:#9aa3b2; font-size:.68rem;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 2px;
+    cursor:pointer; touch-action:manipulation; user-select:none; -webkit-user-select:none;
+    font-family:inherit;
+  }
+  nav button .ic { font-size:1.3rem; }
+  nav button.on { color:#7fa4ff; }
+
+  /* Кнопки */
+  button.act {
+    width:100%; padding:16px; font-size:1.05rem; font-weight:600;
+    background:linear-gradient(135deg,#3d7bff,#7b4dff); color:#fff;
+    border:none; border-radius:12px; cursor:pointer;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  button.act:active { transform:scale(.97); }
+  button.act:disabled { opacity:.4; }
+
+  /* Тест */
+  .topbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .bar { flex:1; height:6px; background:#262d3a; border-radius:3px; overflow:hidden; }
+  .bar i { display:block; height:100%; width:0%; background:linear-gradient(90deg,#3d7bff,#7b4dff); transition:width .3s ease; }
+  .qnum { font-size:.85rem; color:#9aa3b2; white-space:nowrap; }
+  .qtext { font-size:1.08rem; line-height:1.45; margin-bottom:16px; font-weight:500; }
+  .opt {
+    display:flex; align-items:center; min-height:64px;
+    background:#171c26; border:2px solid #262d3a; border-radius:12px;
+    padding:14px 16px; margin-bottom:14px; cursor:pointer;
+    font-size:1rem; line-height:1.4;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .opt .mark { margin-left:auto; font-weight:700; opacity:0; padding-left:10px; transition:opacity .15s ease; }
+  .opt.sel .mark { opacity:1; color:#3d7bff; }
+  .opt.sel { border-color:#3d7bff; background:#1a2337; }
+  .score-big { font-size:2.5rem; font-weight:700; text-align:center; margin:10px 0 4px; }
+  .score-cap { text-align:center; color:#9aa3b2; margin-bottom:16px; }
+  .verdict { text-align:center; font-size:1.08rem; font-weight:600; margin-bottom:18px; }
+  .dots { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:20px; }
+  .dot { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.82rem; font-weight:600; }
+  .dot.ok { background:#1d3a24; color:#4ade80; }
+  .dot.bad { background:#3a1d1d; color:#f87171; }
+  .review { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px; margin-bottom:12px; }
+  .review .tag { font-size:.8rem; font-weight:700; margin-bottom:6px; }
+  .tag.ok { color:#4ade80; } .tag.bad { color:#f87171; }
+  .review .q { font-size:.95rem; margin-bottom:8px; }
+  .review .ans { font-size:.88rem; color:#c6cdd8; line-height:1.45; }
+  .review .ans b { color:#e8eaf0; }
+
+  /* Шпаргалка */
+  .card { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px 16px; margin-bottom:14px; line-height:1.55; font-size:.95rem; }
+  .card b { color:#e8eaf0; }
+  .formula { font-family:ui-monospace,Consolas,monospace; background:#10141d; border-radius:8px; padding:10px 12px; margin:8px 0; font-size:1rem; color:#9ecbff; }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; margin:8px 0; }
+  td, th { padding:7px 8px; border-bottom:1px solid #262d3a; text-align:left; }
+  .swatch { display:inline-block; width:16px; height:16px; border-radius:4px; vertical-align:-3px; margin-right:6px; border:1px solid #000; }
+
+  /* Калькулятор */
+  .resistor { display:flex; align-items:center; gap:14px; background:#171c26; border:1px solid #262d3a; border-radius:14px; padding:20px 16px; margin-bottom:16px; justify-content:center; }
+  .rbody { position:relative; width:190px; height:70px; }
+  .rbody .lead { position:absolute; top:50%; width:26px; height:8px; background:#c8ccd4; border-radius:4px; transform:translateY(-50%); }
+  .rbody .lead.l { left:0; } .rbody .lead.r { right:0; }
+  .rbody .body { position:absolute; left:26px; right:26px; top:10px; bottom:10px; background:#d9b26a; border-radius:10px; }
+  .band { position:absolute; top:10px; bottom:10px; width:12px; border-radius:2px; }
+  .b1 { left:40px; } .b2 { left:66px; } .b3 { left:92px; } .b4 { right:40px; }
+  .calcresult { text-align:center; margin-bottom:18px; }
+  .calcresult .val { font-size:1.9rem; font-weight:700; color:#7fd48a; }
+  .calcresult .tol { color:#9aa3b2; font-size:.95rem; margin-top:4px; }
+  .bandrow { margin-bottom:16px; }
+  .bandrow .lbl { font-size:.85rem; color:#9aa3b2; margin-bottom:8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { width:34px; height:34px; border-radius:50%; border:2px solid #262d3a; cursor:pointer; touch-action:manipulation; position:relative; }
+  .chip.on { border-color:#fff; transform:scale(1.12); }
+  .chip span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:700; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.8); }
+  .calcHint { color:#9aa3b2; font-size:.88rem; line-height:1.5; }
+
+  /* Опыты */
+  .exp { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px 16px; margin-bottom:14px; }
+  .exp h3 { margin-top:0; }
+  .exp ol { margin:8px 0 4px 18px; line-height:1.55; font-size:.93rem; }
+  .exp .warn { color:#f8b26a; font-size:.88rem; margin-top:8px; }
+
+  .ver { text-align:center; color:#555e6d; font-size:.8rem; margin-top:26px; }
 </style>
 </head>
 <body>
-<div class="view active" id="v-home">
-<h1>⚡️ Юный электронщик</h1>
-<p class="sub">Привет! Это твоя настольная книга начинающего радиолюбителя: тест на 50 вопросов, шпаргалка за пайкой и опыты из подручных деталей.</p>
-<a class="tile" data-go="test"><span class="ico">🧪</span><span><span class="tt">Пройти тест</span><br><span class="td">50 вопросов от простых до каверзных</span></span></a>
-<a class="tile" data-go="calc"><span class="ico">🧮</span><span><span class="tt">Калькуляторы</span><br><span class="td">Резистор по цветам полосок</span></span></a>
-<a class="tile" data-go="cheat"><span class="ico">📖</span><span><span class="tt">Шпаргалка</span><br><span class="td">Закон Ома, резисторы, пайка</span></span></a>
-<a class="tile" data-go="exp"><span class="ico">🔬</span><span><span class="tt">Опыты дома</span><br><span class="td">Электромагнит, LED, лимонный ток</span></span></a>
-<a class="tile" data-go="grow"><span class="ico">🚀</span><span><span class="tt">Рост</span><br><span class="td">Что докупить и куда развиваться</span></span></a>
-<div class="card" style="margin-top:18px"><p>⚠️ <b>Правило безопасности:</b> все опыты на этой странице — только на батарейках. Розетку и сетевые приборы не трогаем.</p></div>
-<p class="ver" style="position:static;text-align:center;margin-top:8px">версия 7 • 50 вопросов</p>
+
+<!-- ГЛАВНАЯ -->
+<div class="page active" id="p-home">
+  <h1>⚡ Юный электронщик</h1>
+  <p class="sub">Привет! Это твой помощник в мире электричества: тест, шпаргалка, опыты и калькуляторы. Всё, что нужно, — в нижнем меню.</p>
+  <div class="tiles">
+    <div class="tile" data-go="test">🧪 Тест<small>50 вопросов: от простых к каверзным</small></div>
+    <div class="tile" data-go="cheat">📖 Шпаргалка<small>Омы, резисторы, светодиоды</small></div>
+    <div class="tile" data-go="experiments">🔬 Опыты<small>4 эксперимента на батарейках</small></div>
+    <div class="tile" data-go="calc">🧮 Калькулятор<small>Цвета резистора → номинал</small></div>
+    <div class="tile" data-go="growth">🚀 Рост<small>Что дальше: Arduino и мультиметр</small></div>
+  </div>
+  <div class="ver">версия 8 • 50 вопросов</div>
 </div>
-<div class="view" id="v-test">
-<div class="screen active" id="ts0">
-<h1>🧪 Тест электронщика</h1>
-<p class="sub">50 вопросов от простого к сложному. После каждого ответа — разбор «почему так».</p>
-<div class="card"><ul><li>🏆 45+ — настоящий электронщик</li><li>🔥 35–44 — база крепкая</li><li>⚡ 25–34 — неплохо, освежи тему</li><li>🌱 до 24 — отличное начало пути</li></ul></div>
-<button class="big" id="btnStart">Начать тест</button>
-</div><div class="screen" id="ts1">
-<div class="topbar"><span class="qnum" id="qnum"></span><div class="bar"><i id="barfill"></i></div></div>
-<p class="qtext" id="qtext"></p><div id="opts"></div>
-<button class="big" id="btnNext" style="margin-top:6px" disabled>Дальше →</button>
-</div><div class="screen" id="ts2">
-<h2 style="text-align:center">Результат</h2>
-<div class="score-big" id="scoreBig"></div><div class="score-cap">правильных ответов из 50</div>
-<div class="verdict" id="verdict"></div><div class="dots" id="dots"></div>
-<h2>Разбор ответов</h2><div id="review"></div>
-<button class="big" id="btnAgain" style="margin-top:8px">Пройти ещё раз</button>
-</div></div>
-<div class="view" id="v-calc">
-<h1>🧮 Калькулятор резистора</h1>
-<p class="sub">Выбери цвет каждой полоски — калькулятор посчитает сопротивление. Первые две полоски — цифры, третья — множитель (сколько нулей), четвёртая — точность.</p>
-<div class="res-visual"><div class="res-body">
-<span class="res-lead l"></span><span class="res-lead r"></span>
-<span class="res-band" id="vb0" style="left:28px"></span><span class="res-band" id="vb1" style="left:60px"></span><span class="res-band" id="vb2" style="left:92px"></span><span class="res-band" id="vb3" style="left:124px"></span>
-</div></div>
-<div id="bands"></div>
-<div class="res-out" id="resOut"></div><div class="res-tol" id="resTol"></div>
-<div class="card" style="margin-top:16px"><p><b>Подсказка:</b> держи резистор так, чтобы золотая или серебряная полоска была справа — тогда читать полоски надо слева направо.</p></div>
+
+<!-- ТЕСТ -->
+<div class="page" id="p-test">
+  <div id="t-start">
+    <h1>🧪 Тест: настоящий электронщик</h1>
+    <p class="sub">50 вопросов — от вольт и омов до транзисторов и Arduino. Отвечай, потом разбор каждого ответа с объяснением.</p>
+    <div class="card">
+      <div>🏆 45–50 — настоящий электронщик!</div>
+      <div>🔥 35–44 — база крепкая</div>
+      <div>⚡ 25–34 — неплохо, стоит освежить</div>
+      <div>🧰 до 24 — отличное начало пути</div>
+    </div>
+    <button class="act" id="btnStart">Начать тест</button>
+  </div>
+  <div id="t-quiz" style="display:none">
+    <div class="topbar">
+      <span class="qnum" id="qnum"></span>
+      <div class="bar"><i id="barfill"></i></div>
+    </div>
+    <p class="qtext" id="qtext"></p>
+    <div id="opts"></div>
+    <div style="margin-top:16px"><button class="act" id="btnNext" disabled>Дальше →</button></div>
+  </div>
+  <div id="t-done" style="display:none">
+    <h2 style="text-align:center">Результат</h2>
+    <div class="score-big" id="scoreBig"></div>
+    <div class="score-cap">правильных ответов из 50</div>
+    <div class="verdict" id="verdict"></div>
+    <div class="dots" id="dots"></div>
+    <h2>Разбор ответов</h2>
+    <div id="review"></div>
+    <button class="act" id="btnAgain" style="margin-top:8px">Пройти ещё раз</button>
+  </div>
 </div>
-<div class="view" id="v-cheat">
-<h1>📖 Шпаргалка</h1>
-<div class="card"><h2>Закон Ома</h2><p><b>I = U / R</b><br>I — ток (А), U — напряжение (В), R — сопротивление (Ом).<br>Пример: лампа 6 В и 60 Ом → ток = 6/60 = 0,1 А.</p></div>
-<div class="card"><h2>Единицы</h2><ul><li>Напряжение U — вольт (В)</li><li>Ток I — ампер (А), чаще миллиамперы (мА)</li><li>Сопротивление R — ом (Ом), кОм = 1000 Ом</li><li>Ёмкость C — фарад (Ф), чаще мкФ и пФ</li><li>Мощность P — ватт (Вт), P = U × I</li></ul></div>
-<div class="card"><h2>Цвета резисторов</h2><ul><li>Чёрный 0, коричневый 1, красный 2</li><li>Оранжевый 3, жёлтый 4, зелёный 5</li><li>Синий 6, фиолетовый 7, серый 8, белый 9</li><li>Золотая полоска — допуск ±5%, серебряная — ±10%</li></ul><p>Бери в справочник калькулятор: раздел 🧮 Калькуляторы.</p></div>
-<div class="card"><h2>Резистор для светодиода</h2><p><b>R = (U_питания − U_LED) / I</b><br>Пример: 5 В, красный LED (2 В), ток 10 мА → R = (5−2)/0,01 = 300 Ом, берём 330 Ом.</p></div>
-<div class="card"><h2>Правила пайки</h2><ul><li>Жало ~300 °C — не трогать без присмотра взрослого</li><li>Сначала разогреть контакт, потом подать припой</li><li>Канифоль (флюс) убирает окислы — пайка блестит</li><li>Не держать жало на контакте дольше 2–3 секунд</li></ul></div>
+
+<!-- ШПАРГАЛКА -->
+<div class="page" id="p-cheat">
+  <h1>📖 Шпаргалка</h1>
+  <div class="card">
+    <b>Закон Ома</b>
+    <div class="formula">U = I × R &nbsp;&nbsp; I = U / R &nbsp;&nbsp; R = U / I</div>
+    Пример: светодиод от 5 В через резистор 220 Ом: I = (5 − 2) / 220 ≈ 14 мА.
+  </div>
+  <div class="card">
+    <b>Цветовая маркировка резисторов</b>
+    <table>
+      <tr><th>Цвет</th><th>Цифра</th><th>Множитель</th></tr>
+      <tr><td><span class="swatch" style="background:#111"></span>Чёрный</td><td>0</td><td>×1</td></tr>
+      <tr><td><span class="swatch" style="background:#7a4a21"></span>Коричневый</td><td>1</td><td>×10</td></tr>
+      <tr><td><span class="swatch" style="background:#e33"></span>Красный</td><td>2</td><td>×100</td></tr>
+      <tr><td><span class="swatch" style="background:#f80"></span>Оранжевый</td><td>3</td><td>×1К</td></tr>
+      <tr><td><span class="swatch" style="background:#fd0"></span>Жёлтый</td><td>4</td><td>×10К</td></tr>
+      <tr><td><span class="swatch" style="background:#0a0"></span>Зелёный</td><td>5</td><td>×100К</td></tr>
+      <tr><td><span class="swatch" style="background:#06c"></span>Синий</td><td>6</td><td>×1М</td></tr>
+      <tr><td><span class="swatch" style="background:#70c"></span>Фиолетовый</td><td>7</td><td>×10М</td></tr>
+      <tr><td><span class="swatch" style="background:#888"></span>Серый</td><td>8</td><td>—</td></tr>
+      <tr><td><span class="swatch" style="background:#eee"></span>Белый</td><td>9</td><td>—</td></tr>
+      <tr><td><span class="swatch" style="background:linear-gradient(#e8c34a,#a8842c)"></span>Золотой</td><td>—</td><td>×0,1</td></tr>
+    </table>
+    Допуск: коричневый ±1%, красный ±2%, золотой ±5%, серебряный ±10%.
+    Читать слева направо, золотую/серебряную полоску держать справа.
+  </div>
+  <div class="card">
+    <b>Светодиод</b><br>
+    Длинная ножка — <b>плюс</b> (анод), короткая — минус. Всегда через резистор:
+    <div class="formula">R = (U питания − U светодиода) / I</div>
+    Обычному LED нужно 2 В и 15–20 мА.
+  </div>
+  <div class="card">
+    <b>Конденсаторы</b><br>
+    Накапливают заряд, сглаживают питание. Ёмкость — в фарадах: на практике мкФ и нФ. Электролитические — полярные: полоска на корпусе = минус, перепутать нельзя.
+  </div>
+  <div class="card">
+    <b>Пайка</b><br>
+    Жало ~300 °C — держим только за ручку. Флюс (канифоль) очищает металл, припой (олово-свинец) растекается только на чистое и нагретое. Паяем 2–3 секунды, не дольше.
+  </div>
+  <div class="card">
+    <b>Единицы</b><br>
+    Напряжение — вольты (В) · Ток — амперы (А, чаще мА) · Сопротивление — омы (Ом, кОм, МОм) · Ёмкость — фарады (мкФ) · Мощность — ватты (Вт) · Заряд — кулоны (Кл).
+  </div>
 </div>
-<div class="view" id="v-exp">
-<h1>🔬 Опыты дома</h1>
-<div class="card"><h2>🧲 Электромагнит из гвоздя</h2><ul><li>Намотай 50–100 витков изолированного провода на большой гвоздь</li><li>Концы провода — к батарейке 1,5 В</li><li>Гвоздь притянет канцелярские скрепки!</li><li>Больше витков — сильнее магнит. Работает, пока держишь провод на батарейке</li></ul></div>
-<div class="card"><h2>💡 Светодиод с резистором</h2><ul><li>Батарейка 3 В (две АА) + резистор 330 Ом + светодиод</li><li>Длинную ножку LED — к плюсу</li><li>Поменяй резистор на 100 Ом — засветится ярче</li></ul></div>
-<div class="card"><h2>🍋 Лимонная батарейка</h2><ul><li>Воткни в лимон кусочек меди и оцинкованный гвоздик</li><li>Мультиметр покажет ~0,9 В</li><li>Соедини 3–4 лимона цепочкой — получишь 3 В, хватит на наушник-«пищалку»</li></ul></div>
-<div class="card"><h2>⚡ Статическое электричество</h2><ul><li>Надуй воздушный шарик, потри о волосы</li><li>Шарик притянет мелкие кусочки бумаги</li><li>Это та же сила, что в молнии, только крошечная</li></ul></div>
-<div class="card"><p><b>Заповеди юного электронщика:</b> отключай питание перед пересборкой; не трогай розетку; работай за столом; провода — укутаны изоляцией; после опыта — детали обратно в коробку.</p></div>
+
+<!-- ОПЫТЫ -->
+<div class="page" id="p-exp">
+  <h1>🔬 Опыты дома</h1>
+  <p class="sub">Все опыты — только на батарейках до 9 В. Розетку не трогаем никогда.</p>
+
+  <div class="exp">
+    <h3>🧲 Электромагнит</h3>
+    <ol>
+      <li>Возьми большой гвоздь (10 см) и изоленту.</li>
+      <li>Намотай на гвоздь 50–100 витков изолированного провода.</li>
+      <li>Концы подключи к батарейке 1,5–9 В.</li>
+      <li>Поднеси к торцу скрепки — они примагнитятся!</li>
+    </ol>
+    <div class="warn">⚠ Батарейка греется — отключай, когда не используешь.</div>
+  </div>
+
+  <div class="exp">
+    <h3>💡 Светодиод с резистором</h3>
+    <ol>
+      <li>Соедини батарейку «крона» 9 В, резистор 470 Ом и светодиод последовательно.</li>
+      <li>Длинная ножка LED — к плюсу батарейки.</li>
+      <li>Поменяй полярность — светодиод погаснет. Это диод!</li>
+    </ol>
+  </div>
+
+  <div class="exp">
+    <h3>🍋 Лимонная батарейка</h3>
+    <ol>
+      <li>Воткни в лимон медную проволоку и цинковый гвоздик (или шуруп).</li>
+      <li>Мультиметром измерь напряжение — будет около 0,9 В.</li>
+      <li>Соедини 3–4 лимона последовательно — получишь 3 В и больше.</li>
+    </ol>
+    <div class="warn">⚠ Это настоящая химия — мой руки после опыта.</div>
+  </div>
+
+  <div class="exp">
+    <h3>⚡ Статическое электричество</h3>
+    <ol>
+      <li>Потри воздушный шарик о волосы.</li>
+      <li>Поднеси к мелким кусочкам бумаги — они подпрыгнут.</li>
+      <li>В темноте поднеси к люминесцентной лампочке — слабо мигнёт.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <b>Заповеди юного электронщика</b>
+    <ol style="margin:8px 0 0 18px; line-height:1.6; font-size:.93rem">
+      <li>Розетку и всё, что вставлено в неё, не разбираем.</li>
+      <li>Опыты — только на батарейках.</li>
+      <li>Паяльник — только со взрослым рядом.</li>
+      <li>Схему собираем при выключенной батарейке.</li>
+      <li>Не понял — спроси. Так учатся все электронщики.</li>
+    </ol>
+  </div>
 </div>
-<div class="view" id="v-grow">
-<h1>🚀 Что дальше</h1>
-<div class="card"><h2>Докупить (вместе со взрослыми)</h2><ul><li>Мультиметр — измерит всё сразу</li><li>Набор резисторов, светодиодов и проводов</li><li>Беспаечная макетная плата</li><li>Паяльник — когда освоишь макетку</li></ul></div>
-<div class="card"><h2>Идеи проектов</h2><ul><li>Мигающий светодиод на транзисторе</li><li>Светофор из трёх LED</li><li>Сигнализация на герконе</li><li>Первая программа на Arduino: мигалка</li></ul></div>
-<div class="card"><p>Каждый великий инженер начинал с одной мигающей лампочки. Продолжай — и через год посмеёшься, каким простым кажется сегодняшний тест 🙂</p></div>
+
+<!-- КАЛЬКУЛЯТОР -->
+<div class="page" id="p-calc">
+  <h1>🧮 Калькулятор резистора</h1>
+  <p class="sub">Выбери цвет каждой полоски — получишь номинал. Читать слева направо, золотая полоска справа.</p>
+
+  <div class="resistor">
+    <div class="rbody">
+      <div class="lead l"></div><div class="lead r"></div>
+      <div class="body"></div>
+      <div class="band b1" id="b1"></div>
+      <div class="band b2" id="b2"></div>
+      <div class="band b3" id="b3"></div>
+      <div class="band b4" id="b4"></div>
+    </div>
+  </div>
+
+  <div class="calcresult">
+    <div class="val" id="calcVal">—</div>
+    <div class="tol" id="calcTol"></div>
+  </div>
+
+  <div class="bandrow">
+    <div class="lbl" id="lbl1">Полоска 1 — первая цифра</div>
+    <div class="chips" id="chips1"></div>
+  </div>
+  <div class="bandrow">
+    <div class="lbl" id="lbl2">Полоска 2 — вторая цифра</div>
+    <div class="chips" id="chips2"></div>
+  </div>
+  <div class="bandrow">
+    <div class="lbl" id="lbl3">Полоска 3 — множитель (сколько нулей)</div>
+    <div class="chips" id="chips3"></div>
+  </div>
+  <div class="bandrow">
+    <div class="lbl" id="lbl4">Полоска 4 — допуск (точность)</div>
+    <div class="chips" id="chips4"></div>
+  </div>
+
+  <div class="card calcHint">
+    Пример: <b>коричневый–чёрный–красный–золотой</b> = 1 × 100 = 1000 Ом = <b>1 кОм ±5%</b>.
+    Красный–красный–коричневый–золотой = 22 × 10 = <b>220 Ом ±5%</b>.
+  </div>
 </div>
+
+<!-- РОСТ -->
+<div class="page" id="p-growth">
+  <h1>🚀 Что дальше</h1>
+  <div class="card">
+    <b>Макетная плата (breadboard)</b><br>
+    Собирать схемы без пайки: втыкаешь детали и провода — и всё соединено. Стоит недорого, живёт годами.
+  </div>
+  <div class="card">
+    <b>Мультиметр</b><br>
+    Измеряет вольты, амперы, омы, прозванивает цепь. Первый настоящий инструмент электронщика.
+  </div>
+  <div class="card">
+    <b>Набор «Arduino для начинающих»</b><br>
+    Плата + датчики + светодиоды + моторчик. Программируется с компьютера — так делают умный дом, метеостанции и роботов.
+  </div>
+  <div class="card">
+    <b>Что почитать</b><br>
+    «Электроника для начинающих» Чарльза Платта — лучшая книга для старта с нуля, с опытами на каждой странице.
+  </div>
+</div>
+
 <nav>
-<button data-nav="home" class="on"><span class="ni">🏠</span>Главная</button>
-<button data-nav="test"><span class="ni">🧪</span>Тест</button>
-<button data-nav="calc"><span class="ni">🧮</span>Калькулятор</button>
-<button data-nav="cheat"><span class="ni">📖</span>Шпаргалка</button>
-<button data-nav="exp"><span class="ni">🔬</span>Опыты</button>
-<button data-nav="grow"><span class="ni">🚀</span>Рост</button>
+  <button data-page="home" class="on"><span class="ic">🏠</span>Главная</button>
+  <button data-page="test"><span class="ic">🧪</span>Тест</button>
+  <button data-page="cheat"><span class="ic">📖</span>Шпаргалка</button>
+  <button data-page="experiments"><span class="ic">🔬</span>Опыты</button>
+  <button data-page="calc"><span class="ic">🧮</span>Калькулятор</button>
+  <button data-page="growth"><span class="ic">🚀</span>Рост</button>
 </nav>
+
 <script>
-var QUESTIONS = [{"q": "Что измеряется в амперах?", "opts": ["Сила тока", "Напряжение", "Сопротивление"], "a": 0, "why": "Ампер — сила тока. Напряжение — в вольтах, сопротивление — в омах."}, {"q": "Что означает аббревиатура DC?", "opts": ["Direct Current — постоянный ток", "Direct Circuit — прямая цепь", "Dynamic Charge — динамический заряд"], "a": 0, "why": "DC — постоянный ток, AC (Alternating Current) — переменный."}, {"q": "Какой ток даёт батарейка АА?", "opts": ["Переменный", "Постоянный", "Импульсный"], "a": 1, "why": "Постоянный и стабильный — на этом держится вся портативная электроника."}, {"q": "Какое напряжение у батарейки «крона»?", "opts": ["1,5 В", "9 В", "220 В"], "a": 1, "why": "«Крона» даёт 9 В. Обычная пальчиковая батарейка — 1,5 В."}, {"q": "Какое напряжение в бытовой розетке в России?", "opts": ["220 В", "110 В", "380 В между любыми двумя контактами"], "a": 0, "why": "220 В действующего напряжения, частота 50 Гц. Розетка опасна — с ней работают только взрослые."}, {"q": "Что означает частота 50 Гц?", "opts": ["50 колебаний напряжения в секунду", "50 ватт мощности", "50 фаз в сети"], "a": 0, "why": "Ток проходит полный цикл «плюс–минус–плюс» 50 раз в секунду. Период — 20 мс."}, {"q": "Закон Ома: как найти силу тока?", "opts": ["I = U / R", "I = U × R", "I = R / U"], "a": 0, "why": "I = U/R. Больше напряжение — больше ток; больше сопротивление — меньше ток."}, {"q": "Каким прибором измеряют напряжение?", "opts": ["Вольтметр", "Амперметр", "Линейка"], "a": 0, "why": "Напряжение — вольтметром, ток — амперметром. В мультиметре это один прибор в разных режимах."}, {"q": "Как мультиметром измеряют сопротивление резистора?", "opts": ["Режим Ω, резистор вынут из цепи", "Режим A, цепь под напряжением", "Никак, это невозможно"], "a": 0, "why": "Режим Ω и только на обесточенной цепи — иначе можно сломать мультиметр или получить ложные показания."}, {"q": "Зачем в цепи нужен резистор?", "opts": ["Ограничить ток", "Усилить ток", "Превратить постоянный ток в переменный"], "a": 0, "why": "Резистор ограничивает ток. Без него светодиод от батарейки «кроны» сгорает за секунды."}, {"q": "Какая цифра у красной полоски на резисторе?", "opts": ["2", "3", "4"], "a": 0, "why": "Чёрный 0, коричневый 1, красный 2, оранжевый 3, жёлтый 4, зелёный 5, синий 6, фиолетовый 7, серый 8, белый 9."}, {"q": "Какая цифра у коричневой полоски?", "opts": ["0", "1", "5"], "a": 1, "why": "Коричневый — это 1. Не путайте с чёрным: чёрный — 0."}, {"q": "Что означает золотая полоска на резисторе?", "opts": ["Допуск ±5%", "Особый проводник", "Это просто украшение"], "a": 0, "why": "Золотая — допуск ±5%, серебряная — ±10%. Допуск показывает, насколько реальное сопротивление может отличаться от написанного."}, {"q": "Резистор «коричневый–чёрный–красный»: какой номинал?", "opts": ["100 Ом", "1 кОм", "10 кОм"], "a": 1, "why": "Коричневый=1, чёрный=0, красный=×100 → 10×100 = 1000 Ом = 1 кОм."}, {"q": "Резистор «коричневый–чёрный–оранжевый»: какой номинал?", "opts": ["1 кОм", "10 кОм", "100 кОм"], "a": 1, "why": "10 × 1000 = 10 000 Ом = 10 кОм. Оранжевая полоска добавляет три нуля."}, {"q": "Что означает приставка «кило»?", "opts": ["Умножить на 1000", "Разделить на 1000", "Умножить на 10"], "a": 0, "why": "1 кОм = 1000 Ом, 1 кВ = 1000 В. А «милли» наоборот — тысячная доля."}, {"q": "Что означает приставка «милли»?", "opts": ["Тысячная доля", "Тысяча", "Миллион"], "a": 0, "why": "1 мА = 0,001 А. У милли- и мега- разница в миллиард раз!"}, {"q": "У светодиода длинная ножка — это...", "opts": ["Плюс (анод)", "Минус (катод)", "Без разницы"], "a": 0, "why": "Длинная ножка — плюс. Короткая — минус, у неё ещё и срез на корпусе."}, {"q": "Что будет со светодиодом, если подключить его без резистора?", "opts": ["Засветится ярче и проработает дольше", "Сгорит от перегрузки по току", "Ничего не изменится"], "a": 1, "why": "Светодиод не умеет сам ограничивать ток. Сначала ярко вспыхнет, потом сгорит — нужен резистор."}, {"q": "Какой резистор обычно ставят к красному светодиоду от 5 В?", "opts": ["Около 220 Ом", "Около 1 МОм", "Ничего не ставят"], "a": 0, "why": "(5 В − 2 В) / 10 мА ≈ 300 Ом, округляют до 220–330 Ом. Формула: R = (U_пит − U_LED) / I."}, {"q": "Что сделает конденсатор с постоянным током?", "opts": ["Зарядится, и ток прекратится", "Пропустит как проводник", "Нагреется до отказа"], "a": 0, "why": "Для постоянного тока конденсатор — разрыв цепи после заряда. А переменный он пропускает — на этом строят фильтры."}, {"q": "В чём измеряется ёмкость конденсатора?", "opts": ["В фарадах", "В омах", "В герцах"], "a": 0, "why": "Фарад. На практике — микрофарады (мкФ) и пикофарады (пФ)."}, {"q": "Диод пропускает ток...", "opts": ["Только в одну сторону", "В обе стороны", "Только переменный"], "a": 0, "why": "Диод — односторонний клапан для тока. Если включить наоборот — не пропустит ничего."}, {"q": "Что делает диодный мост?", "opts": ["Выпрямляет переменный ток в постоянный", "Усиливает сигнал", "Меняет частоту"], "a": 0, "why": "Четыре диода превращают обе полуволны переменного тока в пульсирующий постоянный. Это сердце любой зарядки."}, {"q": "Транзистор в схемах чаще всего работает как...", "opts": ["Усилитель или электронный ключ", "Источником питания", "Предохранитель"], "a": 0, "why": "Слабый сигнал на входе управляет сильным током на выходе. Так усиливают сигналы и коммутируют нагрузку."}, {"q": "Сколько примерно падает напряжения на красном светодиоде?", "opts": ["Около 2 В", "Около 12 В", "Ровно 0 В"], "a": 0, "why": "Красный LED съедает ~2 В, синий и белый — ~3 В. Остаток напряжения достаётся резистору."}, {"q": "При последовательном соединении резисторов общее сопротивление...", "opts": ["Складывается", "Уменьшается", "Не меняется"], "a": 0, "why": "R = R1 + R2 + ... Два резистора по 1 кОм последовательно = 2 кОм."}, {"q": "При параллельном соединении общее сопротивление...", "opts": ["Становится меньше меньшего из них", "Складывается", "Не меняется"], "a": 0, "why": "Токам есть куда течь — два пути лучше одного. Два по 1 кОм параллельно = 500 Ом."}, {"q": "Две одинаковые лампочки соединили последовательно. Что станет с их яркостью?", "opts": ["Будут тусклее, чем одна", "Будут ярче", "Не изменится"], "a": 0, "why": "Напряжение делится пополам на каждой — и светятся вполсилы. Зато горят дольше."}, {"q": "Цепь оборвана, мультиметр в режиме Ω покажет...", "opts": ["Бесконечность (разрыв)", "0 Ом", "5 В"], "a": 0, "why": "Обрыв = бесконечное сопротивление. Показание «1» слева на шкале мультиметра — это как раз бесконечность."}, {"q": "Что такое короткое замыкание?", "opts": ["Ток идёт по пути почти без сопротивления", "Обрыв провода", "Слишком высокое напряжение"], "a": 0, "why": "Плюс встретил минус напрямую. Ток огромный, провода греются — отсюда искры и дым."}, {"q": "Что защищает цепь от короткого замыкания?", "opts": ["Предохранитель", "Резистор", "Светодиод"], "a": 0, "why": "Предохранитель сгорает первым и разрывает цепь. Заменить предохранитель проще, чем всю схему."}, {"q": "Чем соединяют детали при пайке?", "opts": ["Припоем — сплавом олова и свинца", "Клеем", "Скотчем"], "a": 0, "why": "Припоем ПОС-61 (олово + свинец), а флюс помогает ему растекаться и прилипать."}, {"q": "Зачем нужен флюс при пайке?", "opts": ["Убрать окислы, чтобы припой растекался", "Охладить деталь", "Изолировать соединение"], "a": 0, "why": "Окисная плёнка мешает припою прилипнуть. Флюс (канифоль) её снимает — пайка получается блестящей."}, {"q": "Какая примерно температура у жала паяльника?", "opts": ["Около 300 °C", "Около 50 °C", "Около 1000 °C"], "a": 0, "why": "Жало горячее сковородки втрое. Трогать нельзя, а работать — только под присмотром взрослого."}, {"q": "Что такое беспаечная макетная плата?", "opts": ["Плата, где детали соединяются без пайки", "Плата из хлеба", "Плата для пайки микросхем под микроскопом"], "a": 0, "why": "Отверстия соединены внутри рядами. Втыкаем детали — цепь готова, а ошибку легко исправить."}, {"q": "Как включают мультиметр для измерения тока?", "opts": ["Последовательно в цепь, как будто это провод", "Параллельно детали", "Никак не включают"], "a": 0, "why": "Ток течёт сквозь прибор, поэтому мультиметр становится частью цепи. Напряжение же меряют параллельно."}, {"q": "Напряжение на детали измеряют...", "opts": ["Параллельно ей", "Последовательно", "Вынув деталь из схемы"], "a": 0, "why": "Щупы касаются двух точек по бокам детали. Включать амперметр параллельно — типичная ошибка новичка."}, {"q": "Откуда молния?", "opts": ["Гигантская электростатическая искра между облаком и землёй", "Огонь из-под земли", "Свет от отражения Солнца"], "a": 0, "why": "Облако заряжается как огромный конденсатор. Разряд — в миллиарды вольт. Укрываться от молнии нужно под низким деревом, а не под высоким."}, {"q": "Как сделать электромагнит сильнее?", "opts": ["Больше витков провода и больше ток", "Снять изоляцию с сердечника", "Укоротить провод"], "a": 0, "why": "Гвоздь + витки изолированного провода + батарейка = электромагнит. Витков больше — магнит сильнее."}, {"q": "Если сравнить ток с водой в трубе, то напряжение — это...", "opts": ["Давление воды", "Скорость течения", "Толщина трубы"], "a": 0, "why": "Напряжение «давит», ток «течёт», сопротивление — узость трубы. Эта аналогия помогает понять любую схему."}, {"q": "В чём измеряется мощность?", "opts": ["В ваттах", "В вольтах", "В амперах"], "a": 0, "why": "Ватт. Лампа «100 ватт» жрёт больше энергии, чем «40 ватт», и светит ярче."}, {"q": "Формула мощности?", "opts": ["P = U × I", "P = U / I", "P = R × U"], "a": 0, "why": "Мощность = напряжение × ток. 220 В × 0,5 А = 110 Вт — примерно чайник на минималках."}, {"q": "Что из этого проводник?", "opts": ["Медь", "Пластик", "Резина"], "a": 0, "why": "Медь проводит ток. Пластик и резина — диэлектрики, поэтому ручки инструментов делают из них."}, {"q": "Почему ручки отвёрток делают из пластика?", "opts": ["Чтобы ток не прошёл в руку", "Для красоты", "Чтобы не грелось от солнца"], "a": 0, "why": "Пластик — диэлектрик. Всё равно работать с электричеством нужно осторожно."}, {"q": "Две одинаковые батарейки соединили последовательно. Напряжение...", "opts": ["Сложится: 1,5 + 1,5 = 3 В", "Останется 1,5 В", "Снизится до 0,75 В"], "a": 0, "why": "Последовательно — напряжение складывается. Так устроены бокс-модели и пульты на 2 батарейки."}, {"q": "Что такое Arduino?", "opts": ["Плата с микроконтроллером, которую программируют", "Марка паяльника", "Программа-рисовалка схем"], "a": 0, "why": "Маленький компьютер для электроники: пишет код — мигает светодиодами, читает датчики, крутит моторы."}, {"q": "Ток в 1 А через пальчиковую батарейку — это...", "opts": ["Много, батарейка перегреется", "Совсем мало", "Нормальный режим"], "a": 0, "why": "Батарейка АА рассчитана на десятки миллиампер. Сотни мА — уже стресс, а ампер — перегрев."}, {"q": "Что произойдёт, если заменить резистор 330 Ом у светодиода на 10 кОм?", "opts": ["Светодиод почти погаснет — тока не хватит", "Светодиод сгорит", "Станет ярче"], "a": 0, "why": "Чем больше сопротивление, тем меньше ток по закону Ома. 10 кОм пропустит доли миллиампера — светодиод едва светится."},
-  {"q": "Первое правило юного электронщика?", "opts": ["Сначала отключить питание, потом трогать схему", "Паять налив чай на плату", "Тянуть провода зубами"], "a": 0, "why": "Отключил питание → переделал схему → включил. Это правило спасает детали и пальцы."}];
+// MAX Bridge: убрать экран загрузки (безопасно, если вне MAX)
+try { if (window.WebApp && typeof window.WebApp.ready === 'function') window.WebApp.ready(); } catch(e) {}
 
-// ===== Роутинг =====
-var VIEWS = ['home','test','calc','cheat','exp','grow'];
-function go(v) {
-  for (var i = 0; i < VIEWS.length; i++) document.getElementById('v-' + VIEWS[i]).classList.remove('active');
-  document.getElementById('v-' + v).classList.add('active');
-  var navs = document.querySelectorAll('nav button');
-  for (var i = 0; i < navs.length; i++) navs[i].classList.toggle('on', navs[i].getAttribute('data-nav') === v);
+var QUESTIONS = [{"q": "Что означает аббревиатура DC?", "opts": ["Direct Current — постоянный ток", "Direct Circuit — прямая цепь", "Dynamic Charge — динамический заряд"], "a": 0, "why": "DC — Direct Current (постоянный ток), AC — Alternating Current (переменный)."}, {"q": "Что означает аббревиатура AC?", "opts": ["Alternating Current — переменный ток", "Auto Current — автоматический ток", "Active Charge — активный заряд"], "a": 0, "why": "AC — переменный ток: направление меняется много раз в секунду."}, {"q": "Какое напряжение и частота в розетке в России?", "opts": ["220 В, 50 Гц", "110 В, 60 Гц", "380 В, 50 Гц"], "a": 0, "why": "220 В / 50 Гц. В США — 110–120 В / 60 Гц, поэтому их техника к нашей сети без преобразователя не подключается."}, {"q": "Что означает частота 50 Гц?", "opts": ["50 колебаний напряжения в секунду", "50 ватт мощности", "50 фаз в сети"], "a": 0, "why": "Ток проходит полный цикл «плюс–минус–плюс» 50 раз в секунду. Период цикла T = 1/50 = 0,02 с — всего 20 мс."}, {"q": "Какой ток даёт батарейка АА?", "opts": ["Переменный, 50 Гц", "Постоянный", "Импульсный"], "a": 1, "why": "Постоянный и стабильный — на этом держится вся портативная электроника."}, {"q": "Что сделает конденсатор с идеальным постоянным током?", "opts": ["Зарядится, и ток прекратится", "Будет пропускать ток как проводник", "Нагреется до отказа"], "a": 0, "why": "Для постоянного тока конденсатор — разрыв цепи после заряда. А переменный он пропускает — на этом строят фильтры."}, {"q": "Почему ЛЭП исторически строят на переменном токе?", "opts": ["Он «сильнее»", "Напряжение легко повышать и понижать трансформатором — меньше потерь", "Так случайно сложилось"], "a": 1, "why": "Трансформатор работает только на переменном токе: подняли напряжение до сотен тысяч вольт — ток упал — потери на нагрев проводов в разы меньше."}, {"q": "Что делает диод в цепи переменного тока?", "opts": ["Усиливает сигнал", "Пропускает ток только в одну сторону — выпрямляет", "Меняет частоту"], "a": 1, "why": "Диод — односторонний клапан. Мост из четырёх диодов выпрямляет обе полуволны — получается пульсирующий постоянный ток."}, {"q": "Что такое действующее значение напряжения (RMS)?", "opts": ["Максимальный пик", "Эквивалент по мощности: постоянное напряжение, дающее то же тепло", "Среднее арифметическое"], "a": 1, "why": "Для синуса U_RMS = U_пик / √2. Пик 311 В даёт те самые 220 В действующих. Поэтому конденсаторы в блоках питания выбирают с запасом по пику."}, {"q": "Что внутри зарядки превращает переменный ток в постоянный?", "opts": ["Трансформатор", "Выпрямитель (диодный мост) + сглаживающий конденсатор", "Генератор"], "a": 1, "why": "Цепочка: преобразователь → диодный мост → конденсатор-фильтр → стабилизатор. Писк дешёвой зарядки — импульсный преобразователь на десятках килогерц."}, {"q": "В каких единицах измеряется сопротивление?", "opts": ["Вольт", "Ом", "Ампер"], "a": 1, "why": "Сопротивление — в омах (Ом), обозначается R. 1 кОм = 1000 Ом, 1 МОм = миллион Ом."}, {"q": "Как записывается закон Ома?", "opts": ["U = I × R", "U = I / R", "R = U × I"], "a": 0, "why": "U = I × R. Пример: 5 В через резистор 100 Ом даст ток I = U/R = 5/100 = 0,05 А = 50 мА."}, {"q": "В каких единицах измеряется сила тока?", "opts": ["Амперах", "Вольтах", "Омах"], "a": 0, "why": "Ток — в амперах (А). В электронике чаще миллиамперы: 20 мА — типичный ток обычного светодиода."}, {"q": "В каких единицах измеряется напряжение?", "opts": ["Амперах", "Вольтах", "Фарадах"], "a": 1, "why": "Напряжение — в вольтах (В). Оно «толкает» ток через сопротивление."}, {"q": "В каких единицах измеряется мощность?", "opts": ["Ваттах", "Омах", "Герцах"], "a": 0, "why": "Мощность — в ваттах (Вт). P = U × I. Лампочка 60 Вт в розетке 220 В потребляет примерно 0,27 А."}, {"q": "Чем измеряют сопротивление резистора?", "opts": ["Мультиметром (режим омметра)", "Вольтметром", "Термометром"], "a": 0, "why": "Мультиметр умеет всё: вольты, амперы, омы и прозвонку цепи со звуком."}, {"q": "Зачем в цепи резистор?", "opts": ["Ограничить ток до нужного значения", "Усилить ток", "Накопить заряд"], "a": 0, "why": "Резистор — «кран» для тока. Без него светодиод от батарейки сгорает за секунды."}, {"q": "Коричневый–чёрный–красный–золотой — какой номинал?", "opts": ["1 кОм ±5%", "10 Ом ±5%", "100 кОм ±1%"], "a": 0, "why": "Коричневый=1, чёрный=0, красный=×100 → 10×100 = 1000 Ом = 1 кОм, золотой = допуск ±5%. Проверь это в калькуляторе!"}, {"q": "Резисторы соединили последовательно. Общее сопротивление?", "opts": ["Складывается: R = R1 + R2", "Делится пополам", "Не меняется"], "a": 0, "why": "Последовательно — складывается: 1 кОм + 2,2 кОм = 3,2 кОм."}, {"q": "Два одинаковых резистора 100 Ом соединили параллельно. Общее?", "opts": ["50 Ом", "100 Ом", "200 Ом"], "a": 0, "why": "Два одинаковых параллельно дают половину: R = R/n = 100/2 = 50 Ом. Параллельно — путь тока «шире»."}, {"q": "Зачем светодиоду токоограничивающий резистор?", "opts": ["Чтобы ток не превысил максимум и LED не сгорел", "Чтобы LED светил ярче", "Чтобы выпрямлять ток"], "a": 0, "why": "Светодиод сам не умеет ограничивать ток. Резистор ставят по формуле R = (Uпит − Uled) / I."}, {"q": "Какая ножка светодиода — плюс (анод)?", "opts": ["Длинная", "Короткая", "Без разницы"], "a": 0, "why": "Длинная ножка — плюс (анод), короткая — минус (катод). Ещё на корпусе катодного борта срезана грань."}, {"q": "В какую сторону светодиод пропускает ток?", "opts": ["Только в одну — от анода к катоду", "В обе", "Ни в какую"], "a": 0, "why": "LED — диод: пропускает ток только при правильной полярности. Перепутал — не загорится."}, {"q": "Что будет, если подключить светодиод к 12 В без резистора?", "opts": ["Будет светить ярче — и быстро перегорит", "Ничего", "Будет светить тусклее"], "a": 0, "why": "Ток вырастет в разы, кристалл перегреется. Учебный, но дорогой способ «познакомиться» 🙂"}, {"q": "Что умеет конденсатор?", "opts": ["Накапливать электрический заряд", "Усиливать ток", "Менять сопротивление от цвета"], "a": 0, "why": "Конденсатор — маленький «аккумулятор» заряда. Применения: сглаживание питания, фильтры, таймеры."}, {"q": "В каких единицах измеряется ёмкость?", "opts": ["Фарадах", "Омах", "Генри"], "a": 0, "why": "Ёмкость — в фарадах (Ф). На практике: микрофарады (мкФ), нанофарады (нФ), пикофарады (пФ)."}, {"q": "Почему электролитический конденсатор нельзя включать наоборот?", "opts": ["Он полярный — при переполюсовке греется и может взорваться", "Он перестанет работать, но безопасно", "Такого не бывает"], "a": 0, "why": "На корпусе есть полоска «−». Минус — к минусу цепи. Это не шутка: газ внутри раздувает корпус."}, {"q": "Что такое транзистор?", "opts": ["Электронный ключ и усилитель", "Резистор с тремя ножками", "Прибор для измерения тока"], "a": 0, "why": "Маленький ток на базе управляет большим током через коллектор–эмиттер. Так работают усилители и переключатели."}, {"q": "Какая нога транзистора «управляет» током (для биполярного)?", "opts": ["База", "Коллектор", "Эмиттер"], "a": 0, "why": "Маленький ток базы открывает «кран» между коллектором и эмиттером. Коэффициент усиления может быть 100 и больше."}, {"q": "Что усиливает магнитное поле катушки?", "opts": ["Железный сердечник внутри", "Ещё один слой изоляции", "Деревянный стержень"], "a": 0, "why": "Электромагнит: ток в катушке создаёт поле, железный сердечник его усиливает. Гвоздь + провод + батарейка = поднимает скрепки."}, {"q": "Что произойдёт, если быстро двигать магнит мимо катушки?", "opts": ["В катушке возникнет ток (ЭДС индукции)", "Ничего", "Катушка расплавится"], "a": 0, "why": "Это электромагнитная индукция — открытие Фарадея. На ней работают все генераторы на электростанциях."}, {"q": "Молния — это что?", "opts": ["Гигантский электрический разряд в атмосфере", "Поток горячей плазмы без электричества", "Звуковая волна"], "a": 0, "why": "Разряд в десятки миллионов вольт. Гром — звук от резкого нагрева воздуха. Франклин изучал это с воздушным змеем."}, {"q": "В каких единицах измеряется электрический заряд?", "opts": ["Кулонах", "Джоулях", "Герцах"], "a": 0, "why": "Заряд — в кулонах (Кл). Один кулон — это заряд, который проходит за 1 секунду при токе 1 ампер."}, {"q": "Какое вещество проводит электричество?", "opts": ["Медь", "Пластик", "Резина"], "a": 0, "why": "Медь, алюминий, железо — проводники. Пластик, резина, стекло — изоляторы. Именно поэтому провода медные, а оплётка пластиковая."}, {"q": "Лампочка в разорванной цепи — что будет?", "opts": ["Погаснет: ток идёт только по замкнутому контуру", "Будет светить тусклее", "Вспыхнет ярче"], "a": 0, "why": "Цепь должна быть замкнута. Выключатель — просто удобный «разрыв» в нужном месте."}, {"q": "До какой температуры нагревается жало паяльника?", "opts": ["Около 300–350 °C", "Около 50 °C", "Около 1000 °C"], "a": 0, "why": "Горячее, чем сковородка! Держи только за ручку, клади на подставку, не трогай жало даже «проверяя»."}, {"q": "Зачем при пайке нужен флюс (канифоль)?", "opts": ["Очищает поверхность и помогает припою растекаться", "Охлаждает деталь", "Крашит припой"], "a": 0, "why": "Флюс снимает окислы с металла. Без него припой скатывается шариками и держится плохо."}, {"q": "Канифоль — это что?", "opts": ["Смола хвойных деревьев — классический флюс", "Вид припоя", "Инструмент для зачистки проводов"], "a": 0, "why": "Приятный бонус — запах хвои при пайке. Современные флюсы бывают и жидкими, и гелеобразными."}, {"q": "Как соединены отверстия макетной платы (breadboard) по бокам?", "opts": ["Длинными полосами-шинами питания вдоль платы", "Все со всеми попарно", "Никак — просто дырки"], "a": 0, "why": "Вдоль края идут «шины» + и −, внутри платы — короткие ряды по 5 отверстий. Так удобно собирать схемы без пайки."}, {"q": "Как включают мультиметр для измерения напряжения?", "opts": ["Параллельно участку цепи", "Последовательно в разрыв", "Сверху на деталь"], "a": 0, "why": "Напряжение — параллельно, ток — в разрыв цепи. Перепутаешь режим — выбьешь предохранитель мультиметра."}, {"q": "Можно ли вскрывать устройства, вставленные в розетку?", "opts": ["Нельзя никогда — сначала вынуть из розетки", "Можно, если осторожно", "Можно, если прибор выключен кнопкой"], "a": 0, "why": "Вынул вилку — только потом откручивай крышку. Конденсаторы в блоках питания могут хранить заряд и после отключения!"}, {"q": "Что опаснее: 12 В от батарейки или 220 В из розетки?", "opts": ["220 В — опасно для жизни", "12 В опаснее", "Одинаково"], "a": 0, "why": "220 В поражает при касании. Низковольтные опыты (5–12 В от батареек) — безопасная территория юного электронщика."}, {"q": "Почему искра при касании дверцы машины «щиплет», хотя в теле тысячи вольт?", "opts": ["Ток крошечный — вольты большие, а энергия маленькая", "Это не электричество", "Потому что на обуви резина"], "a": 0, "why": "Статика накапливает тысячи вольт, но заряд мизерный. Опасно сочетание «высокое напряжение + большой ток»."}, {"q": "Что такое короткое замыкание?", "opts": ["Путь тока в обход нагрузки: ток растёт, провода греются", "Слишком короткий провод", "Быстрое включение света"], "a": 0, "why": "КЗ — главный враг схем: «+» встретил «−» напрямую. Защищают предохранителями и правильной сборкой."}, {"q": "Почему провода делают из меди?", "opts": ["Медь отлично проводит ток и гибкая", "Медь дешёвая, как пластик", "Медь не нагревается никогда"], "a": 0, "why": "Медная жила — стандарт проводки. У алюминия проводимость хуже, у золота — лучше, но дорого."}, {"q": "Из чего состоит обычный припой (ПОС-61)?", "opts": ["Сплав олова и свинца", "Чистое железо", "Медь с пластиком"], "a": 0, "why": "Олово + свинец плавятся при ~183 °C. Есть и бессвинцовые припои — они экологичнее, но капризнее в работе."}, {"q": "Светодиод от 5 В через резистор 220 Ом. Примерный ток? (Uled ≈ 2 В)", "opts": ["Около 15 мА — как раз нормально", "Около 2 А — сгорит", "Около 0,5 мА — не загорится"], "a": 0, "why": "I = (5 − 2) / 220 ≈ 0,0136 А ≈ 14 мА. Стандартный расчёт для LED — запомни этот порядок."}, {"q": "Сколько батареек по 1,5 В нужно последовательно, чтобы получить 4,5 В?", "opts": ["3", "2", "9"], "a": 0, "why": "Последовательно напряжения складываются: 1,5 + 1,5 + 1,5 = 4,5 В. Так устроены «кассеты» в пультах."}, {"q": "Мультиметр в режиме прозвонки пищит на целом проводе. Значит?", "opts": ["Провод целый — цепь замкнута", "Провод оборван", "Батарейка мультиметра села"], "a": 0, "why": "Прозвонка ( continuity ) пищит при низком сопротивлении. Писк = «электричеству есть куда идти»."}, {"q": "Arduino — это что?", "opts": ["Плата с микроконтроллером, которую программируют", "Язык программирования", "Прибор для пайки"], "a": 0, "why": "Пишешь код на компьютере → загружаешь в плату → она мигает светодиодами, читает датчики, крутит моторы. Следующий уровень после макетки!"}];
+
+/* ---------- Навигация ---------- */
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('p-' + id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.page === id);
+  });
   window.scrollTo(0, 0);
-  try { if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v); } catch(e) {}
 }
-function navTap(el, fn) {
-  // единая механика тапа: срабатывает на pointerdown, если палец не поехал (скролл)
-  var sx = 0, sy = 0, done = false;
-  el.addEventListener('pointerdown', function(e) {
-    sx = e.clientX; sy = e.clientY; done = false;
-  }, {passive:true});
-  el.addEventListener('pointerup', function(e) {
-    if (done) return; done = true;
-    if (Math.abs(e.clientX - sx) > 12 || Math.abs(e.clientY - sy) > 12) return; // это был скролл
-    fn();
-  }, {passive:true});
-}
-var navBtns = document.querySelectorAll('nav button');
-for (var i = 0; i < navBtns.length; i++) (function(b){ navTap(b, function(){ go(b.getAttribute('data-nav')); }); })(navBtns[i]);
-var tiles = document.querySelectorAll('a.tile');
-for (var i = 0; i < tiles.length; i++) (function(t){ navTap(t, function(){ go(t.getAttribute('data-go')); }); })(tiles[i]);
+document.querySelectorAll('nav button').forEach(function(b){
+  b.onclick = function(){ goPage(b.dataset.page); };
+});
+document.querySelectorAll('.tile').forEach(function(t){
+  t.onclick = function(){ goPage(t.dataset.go); };
+});
 
-// ===== Тест =====
+/* ---------- Механика тапов ---------- */
+var touchStartX = 0, touchStartY = 0, touchMoved = false, activeOpt = null;
+document.addEventListener('touchstart', function(e) {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchMoved = false;
+}, {passive:true});
+document.addEventListener('touchmove', function(e) {
+  if (Math.abs(e.touches[0].clientX - touchStartX) > 10 ||
+      Math.abs(e.touches[0].clientY - touchStartY) > 10) touchMoved = true;
+}, {passive:true});
+
+function buzz(ms) {
+  try { if (window.WebApp && typeof WebApp.haptic === 'function') WebApp.haptic(ms); } catch(e) {}
+}
+
+/* ---------- Тест ---------- */
 var cur = 0;
 var picked = new Array(QUESTIONS.length).fill(-1);
-var LETTERS = ['А','Б','В'];
+var LETTERS = ['А', 'Б', 'В'];
+
+function show(id) { document.getElementById(id).style.display = 'block'; }
+function hide(id) { document.getElementById(id).style.display = 'none'; }
 
 function renderQ() {
   var q = QUESTIONS[cur];
   document.getElementById('qnum').textContent = 'Вопрос ' + (cur + 1) + ' / ' + QUESTIONS.length;
   document.getElementById('barfill').style.width = (cur / QUESTIONS.length * 100) + '%';
   document.getElementById('qtext').textContent = q.q;
+
   var box = document.getElementById('opts');
   box.innerHTML = '';
   for (var i = 0; i < q.opts.length; i++) {
     var d = document.createElement('div');
     d.className = 'opt' + (picked[cur] === i ? ' sel' : '');
     d.innerHTML = '<span>' + LETTERS[i] + ') ' + q.opts[i] + '</span><span class="mark">✓</span>';
-    (function(idx, el){
-      navTap(el, function(){
+    (function(idx, el) {
+      function pick() {
         picked[cur] = idx;
+        buzz(30);
         var all = box.children;
         for (var k = 0; k < all.length; k++) all[k].classList.remove('sel');
         el.classList.add('sel');
         document.getElementById('btnNext').disabled = false;
         if (cur === QUESTIONS.length - 1) document.getElementById('btnNext').textContent = 'Показать результат';
+      }
+      el.addEventListener('pointerdown', function(e) {
+        activeOpt = el;
+        if (e.pointerType === 'touch') pick();
+      });
+      el.addEventListener('click', function() {
+        // мышь / стилус — обычный клик; тач уже обработан на pointerdown
+        if (activeOpt !== el) pick();
+        activeOpt = null;
       });
     })(i, d);
     box.appendChild(d);
@@ -191,141 +441,107 @@ function finish() {
     var ok = picked[i] === QUESTIONS[i].a;
     if (ok) score++;
     dots += '<div class="dot ' + (ok ? 'ok' : 'bad') + '">' + (i + 1) + '</div>';
-    rev += '<div class="review"><div class="tag ' + (ok ? 'ok' : 'bad') + '">' + (ok ? '✓ Верно' : '✗ Ошибка') + '</div>'
+    rev += '<div class="review">'
+      + '<div class="tag ' + (ok ? 'ok' : 'bad') + '">' + (ok ? '✓ Верно' : '✗ Ошибка') + '</div>'
       + '<div class="q">' + (i + 1) + '. ' + QUESTIONS[i].q + '</div>'
-      + '<div class="ans">Правильно: <b>' + LETTERS[QUESTIONS[i].a] + ') ' + QUESTIONS[i].opts[QUESTIONS[i].a] + '</b><br>' + QUESTIONS[i].why + '</div></div>';
+      + '<div class="ans">Правильно: <b>' + LETTERS[QUESTIONS[i].a] + ') ' + QUESTIONS[i].opts[QUESTIONS[i].a] + '</b><br>'
+      + QUESTIONS[i].why + '</div></div>';
   }
   document.getElementById('scoreBig').textContent = score + ' / 50';
   document.getElementById('verdict').textContent =
-    score >= 45 ? '🏆 Настоящий электронщик!' : score >= 35 ? '🔥 База крепкая!' : score >= 25 ? '⚡ Неплохо! Освежи конденсаторы' : '🌱 Отличное начало пути';
+    score >= 45 ? '🏆 Настоящий электронщик!' :
+    score >= 35 ? '🔥 База крепкая!' :
+    score >= 25 ? '⚡ Неплохо! Загляни в шпаргалку' :
+    '🧰 Отличное начало пути — так все начинали';
   document.getElementById('dots').innerHTML = dots;
   document.getElementById('review').innerHTML = rev;
   document.getElementById('barfill').style.width = '100%';
-  showScreen('ts2');
-}
-function showScreen(id) {
-  var screens = ['ts0','ts1','ts2'];
-  for (var i = 0; i < screens.length; i++) document.getElementById(screens[i]).classList.toggle('active', screens[i] === id);
+  hide('t-quiz'); show('t-done');
   window.scrollTo(0, 0);
 }
-document.getElementById('btnStart').onclick = function(){ cur = 0; renderQ(); showScreen('ts1'); };
-document.getElementById('btnNext').onclick = function(){
-  if (picked[cur] < 0) return;
-  if (cur < QUESTIONS.length - 1) { cur++; renderQ(); window.scrollTo(0,0); }
-  else finish();
-};
-document.getElementById('btnAgain').onclick = function(){
-  picked = new Array(QUESTIONS.length).fill(-1);
+
+document.getElementById('btnStart').onclick = function() {
+  cur = 0; picked = new Array(QUESTIONS.length).fill(-1);
   document.getElementById('btnNext').textContent = 'Дальше →';
-  showScreen('ts0');
+  hide('t-start'); show('t-quiz'); renderQ();
 };
 
-// ===== Калькулятор резистора =====
-var DIGITS = [
-  {k:'black',  c:'#1b1b1b', n:'Чёрный',    d:0},
-  {k:'brown',  c:'#8a5a2b', n:'Коричневый', d:1},
-  {k:'red',    c:'#d32f2f', n:'Красный',   d:2},
-  {k:'orange', c:'#ef6c00', n:'Оранжевый', d:3},
-  {k:'yellow', c:'#f2c94c', n:'Жёлтый',    d:4},
-  {k:'green',  c:'#2e7d32', n:'Зелёный',   d:5},
-  {k:'blue',   c:'#1565c0', n:'Синий',     d:6},
-  {k:'violet', c:'#7b1fa2', n:'Фиолетовый', d:7},
-  {k:'grey',   c:'#9e9e9e', n:'Серый',     d:8},
-  {k:'white',  c:'#f5f5f5', n:'Белый',     d:9}
-];
-function byKey(k) { for (var i = 0; i < DIGITS.length; i++) if (DIGITS[i].k === k) return DIGITS[i]; return null; }
-var MULT = [
-  {k:'black', m:1}, {k:'brown', m:10}, {k:'red', m:100}, {k:'orange', m:1000}, {k:'yellow', m:10000},
-  {k:'green', m:100000}, {k:'blue', m:1000000}, {k:'violet', m:10000000},
-  {k:'gold', c:'#c9a227', n:'Золотой', m:0.1}, {k:'silver', c:'#b0b0b0', n:'Серебряный', m:0.01}
-];
-var TOL = [
-  {k:'brown', t:'±1%'}, {k:'red', t:'±2%'},
-  {k:'gold', c:'#c9a227', n:'Золотой', t:'±5%'}, {k:'silver', c:'#b0b0b0', n:'Серебряный', t:'±10%'},
-  {k:'none', n:'Без полоски', t:'±20%'}
-];
-var sel = { b0:'brown', b1:'black', b2:'red', b3:'gold' };
+document.getElementById('btnNext').onclick = function() {
+  if (picked[cur] < 0) return;
+  if (cur < QUESTIONS.length - 1) { cur++; renderQ(); }
+  else { finish(); }
+};
 
-function bandValue(band, key) {
-  if (band === 'b0' || band === 'b1') return byKey(key).d;
-  if (band === 'b2') { for (var i = 0; i < MULT.length; i++) if (MULT[i].k === key) return MULT[i].m; }
-  return key;
+document.getElementById('btnAgain').onclick = function() {
+  hide('t-done'); show('t-start');
+  window.scrollTo(0, 0);
+};
+
+/* ---------- Калькулятор резистора ---------- */
+var DIG = {'чёрный':0,'коричневый':1,'красный':2,'оранжевый':3,'жёлтый':4,'зелёный':5,'синий':6,'фиолетовый':7,'серый':8,'белый':9};
+var MULT = {'чёрный':1,'коричневый':10,'красный':100,'оранжевый':1e3,'жёлтый':1e4,'зелёный':1e5,'синий':1e6,'фиолетовый':1e7,'золотой':0.1,'серебряный':0.01};
+var TOL  = {'коричневый':1,'красный':2,'золотой':5,'серебряный':10,'нет':20};
+var CSSCOL = {
+  'чёрный':'#111','коричневый':'#7a4a21','красный':'#e33','оранжевый':'#f80','жёлтый':'#fd0',
+  'зелёный':'#0a0','синий':'#06c','фиолетовый':'#70c','серый':'#888','белый':'#eee',
+  'золотой':'linear-gradient(#e8c34a,#a8842c)','серебряный':'linear-gradient(#d5d8de,#9aa0ab)'
+};
+var BAND1 = ['коричневый','красный','оранжевый','жёлтый','зелёный','синий','фиолетовый','серый','белый'];
+var BAND2 = ['чёрный','коричневый','красный','оранжевый','жёлтый','зелёный','синий','фиолетовый','серый','белый'];
+var BAND3 = ['чёрный','коричневый','красный','оранжевый','жёлтый','зелёный','синий','фиолетовый','золотой','серебряный'];
+var BAND4 = ['золотой','серебряный','коричневый','красный','нет'];
+var sel = ['коричневый','чёрный','красный','золотой'];
+
+function fmtVal(v) {
+  if (v >= 1e6) return (v/1e6).toFixed(v % 1e6 ? 2 : 0) + ' МОм';
+  if (v >= 1e3) return (v/1e3).toFixed(v % 1e3 ? 2 : 0) + ' кОм';
+  return v.toFixed(v % 1 ? 1 : 0) + ' Ом';
 }
-function bandColor(band, key) {
-  if (key === 'none') return '#171c26';
-  if (band === 'b0' || band === 'b1') return byKey(key).c;
-  for (var i = 0; i < MULT.length; i++) if (MULT[i].k === key) return MULT[i].c;
-  for (var i = 0; i < TOL.length; i++) if (TOL[i].k === key) return TOL[i].c;
-  return '#171c26';
-}
-function fmt(v) {
-  if (v >= 1e6) return trimNum(v / 1e6) + ' МОм';
-  if (v >= 1000) return trimNum(v / 1000) + ' кОм';
-  return trimNum(v) + ' Ом';
-}
-function trimNum(x) {
-  var s = (Math.round(x * 100) / 100).toString();
-  return s.replace('.', ',');
-}
-function updateRes() {
-  var d1 = bandValue('b0', sel.b0), d2 = bandValue('b1', sel.b1);
-  var m = bandValue('b2', sel.b2), tol = bandValue('b3', sel.b3);
-  document.getElementById('resOut').textContent = fmt((d1 * 10 + d2) * m);
-  document.getElementById('resTol').textContent = 'Допуск ' + tol;
-  for (var i = 0; i < 4; i++) document.getElementById('vb' + i).style.background = bandColor('b' + i, sel['b' + i]);
-  var sws = document.querySelectorAll('.sw');
-  for (var i = 0; i < sws.length; i++) {
-    var b = sws[i].getAttribute('data-band'), k = sws[i].getAttribute('data-key');
-    sws[i].classList.toggle('sel', sel[b] === k);
+
+function renderCalc() {
+  var v = (DIG[sel[0]] * 10 + DIG[sel[1]]) * MULT[sel[2]];
+  var tol = TOL[sel[3]];
+  document.getElementById('calcVal').textContent = fmtVal(v);
+  document.getElementById('calcTol').textContent = 'допуск ±' + tol + '%';
+  for (var i = 1; i <= 4; i++) {
+    document.getElementById('b' + i).style.background = CSSCOL[sel[i-1]];
   }
+  // подпись множителя на третьей полоске
+  var m = MULT[sel[2]];
+  document.getElementById('lbl3').textContent = 'Полоска 3 — множитель (×' + (m < 1 ? m : m.toLocaleString('ru-RU')) + ')';
 }
-function buildBands() {
-  var defs = [
-    {band:'b0', title:'1-я полоска (цифра)', keys: DIGITS.map(function(x){return x.k;})},
-    {band:'b1', title:'2-я полоска (цифра)', keys: DIGITS.map(function(x){return x.k;})},
-    {band:'b2', title:'3-я полоска (множитель)', keys: MULT.map(function(x){return x.k;})},
-    {band:'b3', title:'4-я полоска (допуск)', keys: TOL.map(function(x){return x.k;})}
-  ];
-  var box = document.getElementById('bands');
+
+function buildChips(row, colors, bandIdx) {
+  var box = document.getElementById('chips' + row);
   box.innerHTML = '';
-  for (var di = 0; di < defs.length; di++) {
-    var row = document.createElement('div');
-    row.className = 'sw-row';
-    var lab = document.createElement('div');
-    lab.className = 'sw-label';
-    lab.textContent = defs[di].title;
-    row.appendChild(lab);
-    var wrap = document.createElement('div');
-    wrap.className = 'sw-wrap';
-    for (var ki = 0; ki < defs[di].keys.length; ki++) {
-      var k = defs[di].keys[ki];
-      var sw = document.createElement('div');
-      sw.className = 'sw' + (k === 'none' ? ' none' : '');
-      sw.style.background = bandColor(defs[di].band, k);
-      sw.setAttribute('data-band', defs[di].band);
-      sw.setAttribute('data-key', k);
-      var txt = k;
-      if (defs[di].band === 'b0' || defs[di].band === 'b1') txt = byKey(k).d;
-      else if (defs[di].band === 'b2') { var mm = 0; for (var z = 0; z < MULT.length; z++) if (MULT[z].k === k) mm = MULT[z].m; txt = mm >= 1 ? ('×' + mm) : ('×' + mm); }
-      else { var tt = ''; for (var z = 0; z < TOL.length; z++) if (TOL[z].k === k) tt = TOL[z].t; txt = tt; }
-      sw.textContent = txt;
-      (function(band, key, el){
-        navTap(el, function(){ sel[band] = key; updateRes(); });
-      })(defs[di].band, k, sw);
-      wrap.appendChild(sw);
+  colors.forEach(function(c) {
+    var ch = document.createElement('div');
+    ch.className = 'chip' + (sel[bandIdx] === c ? ' on' : '');
+    ch.style.background = CSSCOL[c];
+    var lbl = (c in DIG) ? DIG[c] : (c in MULT && c !== 'чёрный' && c !== 'коричневый' ? (MULT[c] < 1 ? '×0,1'.replace('0,1', MULT[c] === 0.1 ? '0,1' : '0,01') : '×' + Math.round(MULT[c]).toLocaleString('ru-RU')) : '');
+    if (c === 'чёрный') lbl = '×1';
+    if (c === 'коричневый') lbl = '';
+    ch.innerHTML = '<span>' + lbl + '</span>';
+    function pick() {
+      sel[bandIdx] = c;
+      buzz(20);
+      box.querySelectorAll('.chip').forEach(function(x){ x.classList.remove('on'); });
+      ch.classList.add('on');
+      renderCalc();
     }
-    row.appendChild(wrap);
-    box.appendChild(row);
-  }
-  updateRes();
+    ch.addEventListener('pointerdown', function(e) {
+      if (e.pointerType === 'touch') pick();
+    });
+    ch.addEventListener('click', function() { pick(); });
+    box.appendChild(ch);
+  });
 }
-buildBands();
 
-// ===== Старт с hash =====
-var h = (location.hash || '').replace('#','');
-if (VIEWS.indexOf(h) >= 0) go(h);
-try { if (window.WebApp && typeof window.WebApp.ready === 'function') window.WebApp.ready(); } catch(e) {}
-
+buildChips(1, BAND1, 0);
+buildChips(2, BAND2, 1);
+buildChips(3, BAND3, 2);
+buildChips(4, BAND4, 3);
+renderCalc();
 </script>
 </body>
 </html>

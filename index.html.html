@@ -2,10 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
 <title>Тест: AC и DC</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { overscroll-behavior:none; }
   body {
     font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
     background:#0e1117; color:#e8eaf0; min-height:100vh;
@@ -19,10 +20,12 @@
   .sub { color:#9aa3b2; font-size:.95rem; line-height:1.5; margin-bottom:20px; }
   .scale { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px 16px; margin-bottom:20px; }
   .scale div { font-size:.92rem; padding:4px 0; color:#c6cdd8; }
+  .ver3 { color:#5a6472; font-size:.75rem; text-align:center; margin-top:22px; }
   button {
-    width:100%; padding:15px; font-size:1.05rem; font-weight:600;
+    width:100%; padding:16px; font-size:1.05rem; font-weight:600;
     background:linear-gradient(135deg,#3d7bff,#7b4dff);
     color:#fff; border:none; border-radius:12px; cursor:pointer;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
     transition:transform .12s ease, opacity .12s ease;
   }
   button:active { transform:scale(.97); }
@@ -33,11 +36,15 @@
   .qnum { font-size:.85rem; color:#9aa3b2; white-space:nowrap; }
   .qtext { font-size:1.1rem; line-height:1.45; margin-bottom:18px; font-weight:500; }
   .opt {
+    display:flex; align-items:center; min-height:64px;
     background:#171c26; border:2px solid #262d3a; border-radius:12px;
-    padding:14px; margin-bottom:10px; cursor:pointer; font-size:.98rem; line-height:1.4;
+    padding:14px 16px; margin-bottom:14px; cursor:pointer;
+    font-size:1rem; line-height:1.4;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
     transition:border-color .15s ease, background .15s ease;
   }
-  .opt:active { transform:scale(.985); }
+  .opt .mark { margin-left:auto; font-weight:700; opacity:0; transition:opacity .15s ease; padding-left:10px; }
+  .opt.sel .mark { opacity:1; color:#3d7bff; }
   .opt.sel { border-color:#3d7bff; background:#1a2337; }
   .navrow { margin-top:16px; }
   .score-big { font-size:2.6rem; font-weight:700; text-align:center; margin:10px 0 4px; }
@@ -57,7 +64,6 @@
 </head>
 <body>
 
-<!-- ЭКРАН 1: СТАРТ -->
 <div class="screen active" id="s0">
   <h1>⚡️ Тест: постоянный и переменный ток</h1>
   <p class="sub">10 вопросов от простых до каверзных. Проверьте, чем розетка отличается от батарейки — и почему в зарядке пищит.</p>
@@ -67,9 +73,9 @@
     <div>🧰 до 5 — отличный старт</div>
   </div>
   <button id="btnStart">Начать тест</button>
+  <div class="ver3">версия 3</div>
 </div>
 
-<!-- ЭКРАН 2: ВОПРОС -->
 <div class="screen" id="s1">
   <div class="topbar">
     <span class="qnum" id="qnum"></span>
@@ -80,7 +86,6 @@
   <div class="navrow"><button id="btnNext" disabled>Дальше →</button></div>
 </div>
 
-<!-- ЭКРАН 3: РЕЗУЛЬТАТ -->
 <div class="screen" id="s2">
   <h2 style="text-align:center">Результат</h2>
   <div class="score-big" id="scoreBig"></div>
@@ -90,10 +95,10 @@
   <h2>Разбор ответов</h2>
   <div id="review"></div>
   <button id="btnAgain" style="margin-top:8px">Пройти ещё раз</button>
+  <div class="ver3">версия 3</div>
 </div>
 
 <script>
-// MAX Bridge: убрать экран загрузки (безопасно, если вне MAX)
 try { if (window.WebApp && typeof window.WebApp.ready === 'function') window.WebApp.ready(); } catch(e) {}
 
 var QUESTIONS = [
@@ -132,6 +137,29 @@ var QUESTIONS = [
 var cur = 0;
 var picked = new Array(QUESTIONS.length).fill(-1);
 
+/* ---- Выбор касанием (pointerdown) вместо клика ----
+   Кандидат запоминается при касании. Если палец сместился
+   больше чем на 12 px (это был скролл) — выбор отменяется.
+   Подтверждение — в момент отрыва пальца от того же элемента. */
+var pending = null;
+
+function pressStart(e, el, idx) {
+  pending = { el: el, idx: idx, x0: e.clientX, y0: e.clientY, ok: true };
+}
+function pressMove(e) {
+  if (pending && (Math.abs(e.clientX - pending.x0) > 12 || Math.abs(e.clientY - pending.y0) > 12)) {
+    pending.ok = false;
+  }
+}
+function pressEnd() {
+  if (!pending) return;
+  if (pending.ok) choose(pending.el, pending.idx);
+  pending = null;
+}
+document.addEventListener('pointermove', pressMove, {passive:true});
+document.addEventListener('pointerup', pressEnd, {passive:true});
+document.addEventListener('pointercancel', function(){ pending = null; }, {passive:true});
+
 function show(id) {
   var s = document.querySelectorAll('.screen');
   for (var i = 0; i < s.length; i++) s[i].classList.remove('active');
@@ -153,23 +181,26 @@ function renderQ() {
   box.innerHTML = '';
   var letters = ['А', 'Б', 'В'];
   for (var i = 0; i < q.opts.length; i++) {
-    var d = document.createElement('div');
-    d.className = 'opt' + (picked[cur] === i ? ' sel' : '');
-    d.textContent = letters[i] + ') ' + q.opts[i];
     (function(idx) {
-      d.onclick = function() {
-        picked[cur] = idx;
-        buzz(30);
-        var all = box.children;
-        for (var k = 0; k < all.length; k++) all[k].classList.remove('sel');
-        d.classList.add('sel');
-        document.getElementById('btnNext').disabled = false;
-        if (cur === QUESTIONS.length - 1) document.getElementById('btnNext').textContent = 'Показать результат';
-      };
+      var d = document.createElement('div');
+      d.className = 'opt' + (picked[cur] === idx ? ' sel' : '');
+      d.innerHTML = '<span>' + letters[idx] + ') ' + q.opts[idx] + '</span><span class="mark">✓</span>';
+      d.addEventListener('pointerdown', function(e) { pressStart(e, d, idx); });
+      box.appendChild(d);
     })(i);
-    box.appendChild(d);
   }
   document.getElementById('btnNext').disabled = picked[cur] < 0;
+}
+
+function choose(d, idx) {
+  picked[cur] = idx;
+  buzz(30);
+  var box = document.getElementById('opts');
+  for (var k = 0; k < box.children.length; k++) box.children[k].classList.remove('sel');
+  d.classList.add('sel');
+  var n = document.getElementById('btnNext');
+  n.disabled = false;
+  if (cur === QUESTIONS.length - 1) n.textContent = 'Показать результат';
 }
 
 function finish() {
@@ -194,8 +225,9 @@ function finish() {
   show('s2');
 }
 
-// Привязка обработчиков
-document.getElementById('btnStart').onclick = function() { cur = 0; renderQ(); show('s1'); };
+document.getElementById('btnStart').onclick = function() {
+  cur = 0; renderQ(); show('s1');
+};
 
 document.getElementById('btnNext').onclick = function() {
   if (picked[cur] < 0) return;

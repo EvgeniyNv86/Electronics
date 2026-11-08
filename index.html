@@ -2,10 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
 <title>Тест: AC и DC</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { overscroll-behavior:none; }
   body {
     font-family:-apple-system,'Segoe UI',Roboto,sans-serif;
     background:#0e1117; color:#e8eaf0; min-height:100vh;
@@ -20,9 +21,10 @@
   .scale { background:#171c26; border:1px solid #262d3a; border-radius:12px; padding:14px 16px; margin-bottom:20px; }
   .scale div { font-size:.92rem; padding:4px 0; color:#c6cdd8; }
   button {
-    width:100%; padding:15px; font-size:1.05rem; font-weight:600;
+    width:100%; padding:16px; font-size:1.05rem; font-weight:600;
     background:linear-gradient(135deg,#3d7bff,#7b4dff);
     color:#fff; border:none; border-radius:12px; cursor:pointer;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
     transition:transform .12s ease, opacity .12s ease;
   }
   button:active { transform:scale(.97); }
@@ -33,11 +35,15 @@
   .qnum { font-size:.85rem; color:#9aa3b2; white-space:nowrap; }
   .qtext { font-size:1.1rem; line-height:1.45; margin-bottom:18px; font-weight:500; }
   .opt {
+    display:flex; align-items:center; min-height:60px;
     background:#171c26; border:2px solid #262d3a; border-radius:12px;
-    padding:14px; margin-bottom:10px; cursor:pointer; font-size:.98rem; line-height:1.4;
+    padding:14px 16px; margin-bottom:12px; cursor:pointer;
+    font-size:1rem; line-height:1.4;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
     transition:border-color .15s ease, background .15s ease;
   }
-  .opt:active { transform:scale(.985); }
+  .opt .mark { margin-left:auto; font-weight:700; opacity:0; transition:opacity .15s ease; padding-left:10px; }
+  .opt.sel .mark { opacity:1; color:#3d7bff; }
   .opt.sel { border-color:#3d7bff; background:#1a2337; }
   .navrow { margin-top:16px; }
   .score-big { font-size:2.6rem; font-weight:700; text-align:center; margin:10px 0 4px; }
@@ -132,6 +138,26 @@ var QUESTIONS = [
 var cur = 0;
 var picked = new Array(QUESTIONS.length).fill(-1);
 
+/* ---- Защита от ложных тапов на сенсорных экранах ----
+   1) если палец прокрутил страницу более чем на 12 px —
+      клик сразу после скролла игнорируется (жест был прокруткой, а не выбором);
+   2) между кликами пауза 300 мс — двойной тап не срабатывает дважды. */
+var touchStartY = 0, lastScrollTime = 0, lastTapTime = 0;
+document.addEventListener('touchstart', function(e) {
+  touchStartY = e.touches[0].clientY;
+}, {passive:true});
+document.addEventListener('touchmove', function(e) {
+  if (Math.abs(e.touches[0].clientY - touchStartY) > 12) lastScrollTime = Date.now();
+}, {passive:true});
+
+function tapOk() {
+  var now = Date.now();
+  if (now - lastScrollTime < 350) return false;   // только что скроллили — это не выбор
+  if (now - lastTapTime < 300) return false;      // защита от двойного тапа
+  lastTapTime = now;
+  return true;
+}
+
 function show(id) {
   var s = document.querySelectorAll('.screen');
   for (var i = 0; i < s.length; i++) s[i].classList.remove('active');
@@ -155,9 +181,10 @@ function renderQ() {
   for (var i = 0; i < q.opts.length; i++) {
     var d = document.createElement('div');
     d.className = 'opt' + (picked[cur] === i ? ' sel' : '');
-    d.textContent = letters[i] + ') ' + q.opts[i];
+    d.innerHTML = '<span>' + letters[i] + ') ' + q.opts[i] + '</span><span class="mark">✓</span>';
     (function(idx) {
       d.onclick = function() {
+        if (!tapOk()) return;
         picked[cur] = idx;
         buzz(30);
         var all = box.children;
@@ -194,16 +221,21 @@ function finish() {
   show('s2');
 }
 
-// Привязка обработчиков
-document.getElementById('btnStart').onclick = function() { cur = 0; renderQ(); show('s1'); };
+// Привязка обработчиков (с той же защитой от ложных тапов)
+document.getElementById('btnStart').onclick = function() {
+  if (!tapOk()) return;
+  cur = 0; renderQ(); show('s1');
+};
 
 document.getElementById('btnNext').onclick = function() {
+  if (!tapOk()) return;
   if (picked[cur] < 0) return;
   if (cur < QUESTIONS.length - 1) { cur++; renderQ(); }
   else { finish(); }
 };
 
 document.getElementById('btnAgain').onclick = function() {
+  if (!tapOk()) return;
   picked = new Array(QUESTIONS.length).fill(-1);
   document.getElementById('btnNext').textContent = 'Дальше →';
   show('s0');

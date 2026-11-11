@@ -3,203 +3,191 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Учёт баллонов ПГС — сканер этикетки</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<title>Ревизия баллонов</title>
 <style>
-:root{--blue:#1a3c6e;--line:#d9dde3;--bg:#f4f5f7}
-*{box-sizing:border-box}
-body{font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:#1c1e21;font-size:16px}
-header{background:var(--blue);color:#fff;padding:14px 16px;font-size:18px;font-weight:600}
-main{max-width:640px;margin:0 auto;padding:12px 12px 60px}
-section{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
-h2{font-size:16px;color:var(--blue);margin:0 0 10px}
-button{font-size:16px;padding:10px 14px;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;width:100%}
-button.primary{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
-button:disabled{opacity:.5}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label{display:block;font-size:13px;color:#555;margin:8px 0 3px}
-input,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:6px;font-size:16px;background:#fff}
-#preview{max-width:100%;border:1px solid var(--line);border-radius:6px;margin-top:10px;display:none}
-#status{margin-top:8px;font-size:14px;color:#555;white-space:pre-line}
-.msg{margin-top:8px;font-size:14px;padding:8px 10px;border-radius:6px;display:none}
-.warn{background:#fdf3e3;color:#8a5a00;border:1px solid #f0d9ad}
-.ok{background:#e8f4ea;color:#1e6b2e;border:1px solid #bfe0c6}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{border:1px solid var(--line);padding:6px 8px;text-align:left}
-th{background:#eef1f5;font-weight:600}
-small.hint{color:#777;font-size:12.5px;display:block;margin-top:6px}
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f2f4f8; color: #1c2733; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 22px; margin: 8px 0 4px; }
+  .sub { color: #5b6b7b; font-size: 14px; margin-bottom: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+  .stat { background: #fff; border-radius: 12px; padding: 10px 6px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .stat b { display: block; font-size: 20px; }
+  .stat span { font-size: 11px; color: #5b6b7b; }
+  .card { background: #fff; border-radius: 16px; padding: 16px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { font-size: 17px; margin: 0 0 12px; color: #14508c; }
+  label { display: block; font-size: 13px; color: #5b6b7b; margin: 10px 0 4px; }
+  input, select { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #cfd8e3; border-radius: 10px; background: #fff; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  button { width: 100%; padding: 14px; font-size: 17px; border: none; border-radius: 12px; background: #14508c; color: #fff; font-weight: 600; margin-top: 14px; cursor: pointer; }
+  button.gray { background: #e8edf3; color: #1c2733; }
+  .msg { padding: 12px; border-radius: 10px; margin: 10px 0; font-size: 14px; }
+  .ok { background: #e7f6ec; color: #1d6a34; }
+  .err { background: #fdeaea; color: #a12a2a; }
+  .entry { background: #fff; border-radius: 12px; padding: 10px 12px; margin: 8px 0; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .entry .info { flex: 1; font-size: 14px; }
+  .entry .info b { font-size: 15px; }
+  .entry .del { color: #a12a2a; font-size: 18px; background: none; border: none; padding: 6px; margin: 0; width: auto; cursor: pointer; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 12px; margin-left: 6px; }
+  .t-full { background: #e7f6ec; color: #1d6a34; }
+  .t-empty { background: #fff4e0; color: #8a5a00; }
+  .t-bad { background: #fdeaea; color: #a12a2a; }
+  .t-al { background: #e8f0fe; color: #14508c; }
 </style>
 </head>
 <body>
-<header>Учёт баллонов ПГС</header>
-<main>
+<div class="wrap">
+  <h1>Ревизия баллонов</h1>
+  <div class="sub">Добавляйте баллоны по одному. Данные сохраняются в телефоне.</div>
 
-<section>
-<h2>Шаг 1. Этикетка</h2>
-<input type="file" accept="image/*" capture="environment" id="photo">
-<img id="preview" alt="">
-<button style="margin-top:10px" id="btnRec">Распознать этикетку</button>
-<div id="status"></div>
-<div id="msg" class="msg"></div>
-</section>
+  <div class="stats">
+    <div class="stat"><b id="stAll">0</b><span>всего</span></div>
+    <div class="stat"><b id="stFull">0</b><span>полных</span></div>
+    <div class="stat"><b id="stEmpty">0</b><span>пустых</span></div>
+    <div class="stat"><b id="stBad">0</b><span>не годн.</span></div>
+    <div class="stat"><b id="stAl">0</b><span>алюм.</span></div>
+  </div>
 
-<section>
-<h2>Шаг 2. Операция</h2>
-<div class="grid">
-  <div><label>№ баллона</label><input id="f_bal"></div>
-  <div><label>№ паспорта</label><input id="f_pas"></div>
-  <div><label>Объём, дм³</label><input id="f_vol"></div>
-  <div><label>Давление, МПа</label><input id="f_pres"></div>
+  <div class="card">
+    <h2>Новый баллон</h2>
+    <div id="msg"></div>
+    <label>№ баллона *</label>
+    <input id="num" inputmode="numeric" placeholder="например 02871">
+    <label>№ паспорта (если читается)</label>
+    <input id="pass" placeholder="например 04534-26">
+    <div class="row">
+      <div>
+        <label>Материал</label>
+        <select id="mat"><option>Алюминий</option><option>Сталь</option></select>
+      </div>
+      <div>
+        <label>Состояние</label>
+        <select id="cond" onchange="condChanged()">
+          <option value="full">Полный</option>
+          <option value="empty">Пустой</option>
+          <option value="bad">Не годен</option>
+        </select>
+      </div>
+    </div>
+    <div id="gasBlock">
+      <label>Газ</label>
+      <select id="gas">
+        <option>Метан (CH4)</option>
+        <option>Пропан (C3H8)</option>
+        <option>Кислород (O2)</option>
+        <option>Азот (N2)</option>
+        <option>Воздух</option>
+        <option>Аргон (Ar)</option>
+        <option>Углекислота (CO2)</option>
+        <option>Гелий (He)</option>
+        <option>Водород (H2)</option>
+      </select>
+      <label>Концентрация, % об. д.</label>
+      <input id="conc" inputmode="decimal" placeholder="например 97.56">
+    </div>
+    <button onclick="add()">Внести</button>
+  </div>
+
+  <div class="card">
+    <h2>Ведомость (<span id="cnt">0</span>)</h2>
+    <div id="list"></div>
+    <button class="gray" onclick="downloadCSV()">Скачать CSV для Excel</button>
+    <button class="gray" onclick="copyAll()">Скопировать журнал</button>
+    <button class="gray" onclick="clearAll()">Очистить всё</button>
+  </div>
 </div>
-<label>Определяемый компонент</label>
-<select id="f_gas">
-  <option value="метан">Метан (CH4)</option>
-  <option value="CO">Оксид углерода (CO)</option>
-  <option value="воздух">Воздух</option>
-  <option value="азот">Азот</option>
-</select>
-<label>Концентрация, % об. д.</label><input id="f_conc" inputmode="decimal">
-<label>Операция</label>
-<select id="f_op">
-  <option>Приём из Югра-ПГС (заправленный)</option>
-  <option>Отправка в Югра-ПГС (пустой)</option>
-  <option>Выдача клиенту</option>
-  <option>Выдача в Газ-Лаб</option>
-  <option>Возврат на склад (пустой)</option>
-</select>
-<div class="grid">
-  <div><label>Клиент / сотрудник</label><input id="f_who"></div>
-  <div><label>Дата</label><input id="f_date" type="date"></div>
-</div>
-<button style="margin-top:12px" class="primary" id="btnSave">Внести</button>
-<small class="hint">НКПР считается в Excel по формуле. Здесь только фиксация операции.</small>
-</section>
 
-<section>
-<h2>Журнал операций (в этом телефоне)</h2>
-<table id="logTable"><thead><tr><th>Дата</th><th>Баллон</th><th>Паспорт</th><th>Операция</th><th>%</th><th>Кто</th></tr></thead><tbody></tbody></table>
-<button style="margin-top:10px" id="btnCopy">Скопировать журнал для Excel</button>
-<small class="hint">Строки разделены переводом строки, столбцы — табуляцией. Вставьте в лист Excel: данные лягут по столбцам.</small>
-</section>
-
-</main>
 <script>
-const CONFIG = { WEBHOOK_URL: "" }; // опционально: адрес вебхука для автозагрузки в таблицу
+const KEY = 'balloon_rev';
+let items = JSON.parse(localStorage.getItem(KEY) || '[]');
 
-const $ = id => document.getElementById(id);
-const today = new Date().toISOString().slice(0,10);
-$('f_date').value = today;
+function save() { localStorage.setItem(KEY, JSON.stringify(items)); }
 
-let fileBlob = null;
-$('photo').addEventListener('change', e => {
-  const f = e.target.files[0]; if (!f) return;
-  fileBlob = f;
-  $('preview').src = URL.createObjectURL(f);
-  $('preview').style.display = 'block';
-  $('msg').className = 'msg'; $('msg').style.display = 'none';
-});
-
-function show(text, cls){
-  const m = $('msg'); m.textContent = text; m.className = 'msg ' + (cls||'warn'); m.style.display = 'block';
+function condChanged() {
+  document.getElementById('gasBlock').style.display =
+    document.getElementById('cond').value === 'full' ? 'block' : 'none';
 }
 
-$('btnRec').addEventListener('click', async () => {
-  if (!fileBlob){ show('Сначала выберите или сделайте фото этикетки.'); return; }
-  $('btnRec').disabled = true;
-  $('status').textContent = 'Загружаю модуль распознавания (при первом запуске ~10 МБ, потом из кэша)...';
-  try{
-    const worker = await Tesseract.createWorker('rus+eng', 1, {
-      logger: m => { if (m.status === 'recognizing text') $('status').textContent = 'Распознаю... ' + Math.round(m.progress*100) + '%'; }
-    });
-    $('status').textContent = 'Распознаю...';
-    const { data: { text } } = await worker.recognize(fileBlob);
-    await worker.terminate();
-    const parsed = parseLabel(text);
-    applyParsed(parsed, text);
-  }catch(err){
-    show('Ошибка распознавания: ' + err.message + '. Заполните поля вручную.');
-  }
-  $('btnRec').disabled = false;
-});
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function parseLabel(text){
-  const t = text.replace(/\u00a0/g,' ');
-  const g = s => { const m = t.match(s); return m ? m[1] : ''; };
-  const norm = v => v.replace(',','.').trim();
-  const bal   = g(/[Бб]аллон\s*№?\s*[:.]?\s*(\d{3,6})/);
-  const pas   = g(/[Пп]аспорт\s*№?\s*[:.]?\s*(\d{3,6}\s*[-–]?\s*\d{0,3})/).replace(/\s/g,'');
-  const vol   = g(/(\d{1,2}(?:[.,]\d+)?)\s*дм/i);
-  const pres  = norm(g(/(\d{1,2}[.,]\d+)\s*МПа/i));
-  let ch4     = norm(g(/метан[^\d\n]{0,40}?(\d{1,2}[.,]\d{1,3})/i));
-  let n2      = norm(g(/азот[^\d\n]{0,40}?(\d{1,2}[.,]\d{1,3})/i));
-  if (!ch4 && n2) ch4 = (100 - parseFloat(n2)).toFixed(2);
-  if (!n2 && ch4) n2 = (100 - parseFloat(ch4)).toFixed(2);
-  return { bal, pas, vol, pres, ch4, n2 };
+function render() {
+  document.getElementById('stAll').textContent = items.length;
+  document.getElementById('stFull').textContent = items.filter(i => i.cond==='full').length;
+  document.getElementById('stEmpty').textContent = items.filter(i => i.cond==='empty').length;
+  document.getElementById('stBad').textContent = items.filter(i => i.cond==='bad').length;
+  document.getElementById('stAl').textContent = items.filter(i => i.mat==='Алюминий').length;
+  document.getElementById('cnt').textContent = items.length;
+  const list = document.getElementById('list');
+  list.innerHTML = items.map((it, idx) => {
+    const tag = it.cond==='full' ? '<span class="tag t-full">полный</span>'
+              : it.cond==='empty' ? '<span class="tag t-empty">пустой</span>'
+              : '<span class="tag t-bad">не годен</span>';
+    const gas = it.cond==='full' ? ' · ' + esc(it.gas) + (it.conc ? ' ' + esc(it.conc) + '%' : '') : '';
+    return '<div class="entry"><div class="info"><b>№ ' + esc(it.num) + '</b>' + tag +
+      '<span class="tag t-al">' + esc(it.mat) + '</span><br>' +
+      (it.pass ? 'паспорт ' + esc(it.pass) : 'паспорт —') + gas +
+      '</div><button class="del" onclick="del(' + idx + ')">✕</button></div>';
+  }).join('');
 }
 
-function applyParsed(p, raw){
-  const filled = [];
-  if (p.bal)  { $('f_bal').value  = p.bal;  filled.push('баллон'); }
-  if (p.pas)  { $('f_pas').value  = p.pas;  filled.push('паспорт'); }
-  if (p.vol)  { $('f_vol').value  = p.vol;  filled.push('объём'); }
-  if (p.pres) { $('f_pres').value = p.pres; filled.push('давление'); }
-  if (p.ch4)  { $('f_conc').value = p.ch4;  filled.push('метан'); }
-  if (filled.length){
-    show('Распознал: ' + filled.join(', ') + '. Проверьте цифры по этикетке и внесите операцию.', 'ok');
-  } else {
-    show('Текст не распознан. Снимайте этикетку ближе, при ровном свете, без бликов. Заполните поля вручную.\n\nЧто увидел: ' + raw.slice(0,200));
-  }
+function show(text, cls) {
+  const m = document.getElementById('msg');
+  m.innerHTML = '<div class="msg ' + cls + '">' + text + '</div>';
+  setTimeout(() => { m.innerHTML = ''; }, 5000);
 }
 
-let log = [];
-try{ log = JSON.parse(localStorage.getItem('pgs_log') || '[]'); }catch(e){}
-renderLog();
-
-$('btnSave').addEventListener('click', () => {
-  const bal = $('f_bal').value.trim();
-  if (!bal){ show('Введите хотя бы № баллона.'); return; }
-  const row = {
-    date: $('f_date').value, bal, pas: $('f_pas').value.trim(),
-    vol: $('f_vol').value, pres: $('f_pres').value,
-    gas: $('f_gas').value, conc: $('f_conc').value,
-    op: $('f_op').value, who: $('f_who').value.trim()
+function add() {
+  const num = document.getElementById('num').value.trim();
+  if (!num) { show('Введите номер баллона', 'err'); return; }
+  if (items.some(i => i.num === num)) { show('Баллон № ' + esc(num) + ' уже записан', 'err'); return; }
+  const cond = document.getElementById('cond').value;
+  const it = {
+    num: num,
+    pass: document.getElementById('pass').value.trim(),
+    mat: document.getElementById('mat').value,
+    cond: cond,
+    gas: cond==='full' ? document.getElementById('gas').value : '',
+    conc: cond==='full' ? document.getElementById('conc').value.trim() : '',
+    time: new Date().toLocaleString('ru-RU')
   };
-  log.unshift(row);
-  localStorage.setItem('pgs_log', JSON.stringify(log));
-  renderLog();
-  sendWebhook(row);
-  show('Внесено. Баллон ' + bal + ' — операция «' + row.op + '» записана в журнал.', 'ok');
-});
-
-function renderLog(){
-  const tb = $('logTable').querySelector('tbody'); tb.innerHTML = '';
-  log.forEach(r => {
-    const tr = document.createElement('tr');
-    [r.date, r.bal, r.pas, r.op, r.conc, r.who].forEach(v => {
-      const td = document.createElement('td'); td.textContent = v || ''; tr.appendChild(td);
-    });
-    tb.appendChild(tr);
-  });
+  items.push(it);
+  save(); render();
+  document.getElementById('num').value = '';
+  document.getElementById('pass').value = '';
+  document.getElementById('conc').value = '';
+  document.getElementById('num').focus();
+  show('Записан баллон № ' + esc(num), 'ok');
 }
 
-$('btnCopy').addEventListener('click', () => {
-  if (!log.length){ show('Журнал пуст.'); return; }
-  const head = ['Дата','Баллон','Паспорт','Операция','% об.д.','Кто'];
-  const txt = [head.join('\t')].concat(log.map(r =>
-    [r.date, r.bal, r.pas, r.op, r.conc, r.who].join('\t'))).join('\n');
-  navigator.clipboard.writeText(txt)
-    .then(() => show('Скопировано. Вставьте в Excel (Ctrl+V / «Вставить»).', 'ok'))
-    .catch(() => show('Не удалось скопировать автоматически. Откройте журнал на компьютере — данные сохранены в телефоне.'));
-});
+function del(idx) { items.splice(idx, 1); save(); render(); }
 
-function sendWebhook(row){
-  if (!CONFIG.WEBHOOK_URL) return;
-  fetch(CONFIG.WEBHOOK_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(row)
-  }).catch(()=>{});
+function csv() {
+  const rows = [['№ баллона','№ паспорта','Материал','Состояние','Газ','Концентрация %','Время']];
+  items.forEach(i => rows.push([i.num, i.pass, i.mat,
+    i.cond==='full'?'полный':i.cond==='empty'?'пустой':'не годен', i.gas, i.conc, i.time]));
+  return '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(';')).join('\n');
 }
+
+function downloadCSV() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv()], {type: 'text/csv'}));
+  a.download = 'revizia_ballonov.csv';
+  a.click();
+}
+
+function copyAll() {
+  navigator.clipboard.writeText(csv()).then(
+    () => alert('Скопировано. Вставьте в Excel через Ctrl+V — колонки разойдутся сами.'),
+    () => alert('Не удалось скопировать. Используйте кнопку "Скачать CSV".')
+  );
+}
+
+function clearAll() {
+  if (confirm('Удалить все записи? Отменить будет нельзя.')) { items = []; save(); render(); }
+}
+
+render(); condChanged();
 </script>
 </body>
 </html>

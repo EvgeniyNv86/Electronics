@@ -1,320 +1,215 @@
-<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ЭлектронЛэнд — игра для юных электронщиков</title>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Учёт баллонов ПГС — сканер</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:#0d1524;color:#e8eef7;font-family:Arial,Helvetica,sans-serif;min-height:100vh;padding:12px}
-.card{background:#16233a;border-radius:14px;padding:16px;margin:12px auto;max-width:560px}
-h1{color:#ffb703;text-align:center;font-size:26px;margin:6px 0}
-h2{color:#ffb703;font-size:20px;margin:8px 0}
-h3{color:#8fd3ff;font-size:16px;margin:10px 0 4px}
-.b{display:inline-block;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:15px;margin:3px;cursor:pointer}
-.b2{background:#374151}.bg{background:#16a34a}.br{background:#dc2626}
-input{background:#0d1524;color:#e8eef7;border:1px solid #33475e;border-radius:8px;padding:10px;font-size:15px;width:100%;margin:6px 0}
-.chip{display:inline-block;background:#1e3a5f;border-radius:8px;padding:4px 8px;margin:2px;font-size:14px}
-.bar{background:#0d1524;border-radius:8px;height:14px;overflow:hidden;margin:6px 0}
-.bar div{background:#2dd4a7;height:100%}
-.tile{display:block;background:#1c2c47;border-radius:14px;padding:13px;margin:9px 0;color:#e8eef7;font-size:16px;cursor:pointer;border:none;width:100%;text-align:left}
-.tile small{color:#9fb0c8;display:block;margin-top:4px;font-size:13px}
-.ok{color:#2dd4a7}.bad{color:#ff6b6b}.dim{color:#9fb0c8}
-.big{font-size:44px;text-align:center;margin:8px}
-p{margin:6px 0;line-height:1.45}
-</style></head><body><div id="app"></div><script>
-var DB={users:{}},cur=null;
-function load(){try{DB=JSON.parse(localStorage.getItem("eland2")||"{}")}catch(e){DB={}}if(!DB.users)DB.users={}}
-function save(){localStorage.setItem("eland2",JSON.stringify(DB))}
-function U(){return DB.users[cur]}
-function V(id){return document.getElementById(id).value}
-load();
-function scr(h){document.getElementById("app").innerHTML=h}
+  :root { --blue:#1a4d8f; --bg:#f5f6f8; --border:#d9dce1; --ok:#1e7e34; --warn:#b26a00; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Arial,sans-serif; margin:0; background:var(--bg); color:#222; }
+  header { background:var(--blue); color:#fff; padding:14px 16px; }
+  header h1 { font-size:18px; margin:0; }
+  header p { margin:4px 0 0; font-size:12px; opacity:.85; }
+  main { max-width:640px; margin:0 auto; padding:16px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:16px; }
+  .card h2 { font-size:15px; margin:0 0 12px; color:var(--blue); }
+  button { font-size:15px; padding:12px 16px; border-radius:6px; border:none; cursor:pointer; }
+  .primary { background:var(--blue); color:#fff; width:100%; }
+  .secondary { background:#eef1f5; color:#333; width:100%; margin-top:8px; }
+  .ok { background:var(--ok); color:#fff; width:100%; margin-top:8px; }
+  label { display:block; font-size:13px; color:#555; margin:10px 0 4px; }
+  input, select { width:100%; padding:10px; font-size:15px; border:1px solid var(--border); border-radius:6px; }
+  .row { display:flex; gap:8px; } .row > div { flex:1; }
+  #preview { width:100%; border-radius:6px; display:none; margin-top:12px; }
+  #status { font-size:13px; margin-top:10px; padding:8px; border-radius:6px; display:none; }
+  .st-ok { background:#e6f4ea; color:var(--ok); }
+  .st-warn { background:#fdf1e0; color:var(--warn); }
+  .st-err { background:#fdecea; color:#b3261e; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { border:1px solid var(--border); padding:6px 8px; text-align:left; }
+  th { background:#eef1f5; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Учёт баллонов ПГС</h1>
+  <p>Сфотографируйте этикетку — номер, паспорт и концентрация заполнятся сами</p>
+</header>
+<main>
 
-// ===== профили =====
-function authScr(){scr('<div class="card"><h1>⚡ ЭлектронЛэнд</h1>'+
-'<p class="dim" style="text-align:center">Игра-школа для юных электронщиков</p>'+
-'<input id="nm" placeholder="Имя игрока">'+
-'<input id="pn" type="password" inputmode="numeric" placeholder="ПИН (любые цифры)">'+
-'<button class="b bg" onclick="doReg()">Создать игрока</button> '+
-'<button class="b b2" onclick="doLogin()">Войти</button>'+
-'<div id="msg" class="bad" style="margin-top:8px"></div></div>')}
-function doReg(){var n=V("nm").trim(),p=V("pn").trim();
-if(!n||!p){msg("Введи имя и ПИН");return}
-if(DB.users[n]){msg("Такое имя уже занято");return}
-DB.users[n]={pin:p,xp:0,ach:{start:1},sch:0,boom:0,lab:0,duelW:0,scd:{},mz:{},qs:{}};
-save();cur=n;hub()}
-function doLogin(){var n=V("nm").trim(),p=V("pn").trim();
-if(!DB.users[n]||DB.users[n].pin!=p){msg("Неверное имя или ПИН");return}
-cur=n;hub()}
-function msg(t){document.getElementById("msg").innerHTML=t}
-function logout(){cur=null;save();authScr()}
+<section class="card">
+  <h2>Шаг 1. Этикетка</h2>
+  <button class="primary" id="btnCam">📷 Сфотографировать этикетку</button>
+  <input type="file" id="fileInput" accept="image/*" capture="environment" class="hidden">
+  <img id="preview" alt="">
+  <div id="status"></div>
+  <button class="secondary hidden" id="btnOcr" style="margin-top:10px">🔍 Распознать текст</button>
+</section>
 
-// ===== ранги и достижения =====
-var RANKS=[[0,"🌱 Новичок"],[100,"🔰 Юный электронщик"],[250,"🛠️ Монтажник"],[500,"⚡ Инженер"],[1000,"👑 Гуру"]];
-function rank(x){var r=RANKS[0][1];for(var i=0;i<RANKS.length;i++)if(x>=RANKS[i][0])r=RANKS[i][1];return r}
-function lvl(x){return Math.floor(x/100)+1}
-var ACH=[["start","🎬","Первый запуск"],["sch5","🔌","5 схем собрано"],["sch10","🧠","10 схем собрано"],["boom3","💥","Пиротехник: 3 взрыва"],["maze1","🏃","Первый лабиринт"],["maze5","🗺️","Все лабиринты"],["lab10","⚗️","10 опытов в лабе"],["duel","⚔️","Победа в дуэли"],["quest","📏","Все измерения"]];
-function give(code){var u=U();if(!u.ach[code]){u.ach[code]=1;save()}}
-function addXP(n){U().xp+=n;save()}
-function checkA(){var u=U();
-if(u.sch>=5)give("sch5");if(u.sch>=10)give("sch10");
-if(u.boom>=3)give("boom3");if(u.lab>=10)give("lab10");
-var c=0;for(var k in u.mz)c++;if(c>=1)give("maze1");if(c>=5)give("maze5");
-c=0;for(var k in u.qs)c++;if(c>=5)give("quest")}
+<section class="card hidden" id="formCard">
+  <h2>Шаг 2. Операция</h2>
+  <div class="row">
+    <div><label>№ баллона</label><input id="ballonNo"></div>
+    <div><label>№ паспорта</label><input id="passportNo"></div>
+  </div>
+  <div class="row">
+    <div><label>Объём, дм³</label><input id="volume" inputmode="decimal"></div>
+    <div><label>Давление, МПа</label><input id="pressure" inputmode="decimal"></div>
+  </div>
+  <div class="row">
+    <div><label>Газ</label>
+      <select id="gas">
+        <option>Метан (CH4)</option>
+        <option>Оксид углерода (CO)</option>
+        <option>Воздух</option>
+        <option>Азот (N2)</option>
+      </select>
+    </div>
+    <div><label>Концентрация, % об.д.</label><input id="conc" inputmode="decimal"></div>
+  </div>
+  <div class="row">
+    <div><label>НКПР (авто)</label><input id="lkpr" readonly></div>
+    <div><label>CO, ppm (авто)</label><input id="coPpm" readonly></div>
+  </div>
+  <label>Тип операции</label>
+  <select id="opType">
+    <option>Приём из Югра-ПГС (заправленный)</option>
+    <option>Отправка в Югра-ПГС (пустой)</option>
+    <option>Выдача клиенту</option>
+    <option>Выдача в Газ-Лаб</option>
+    <option>Возврат от клиента</option>
+  </select>
+  <label id="whoLabel">Клиент / сотрудник</label>
+  <input id="who" placeholder="Фамилия или организация">
+  <label>Дата</label>
+  <input id="date" type="date">
+  <button class="ok" id="btnSave">✅ Внести запись</button>
+</section>
 
-// ===== хаб =====
-function hub(){var u=U();checkA();var prog=u.xp%100;
-scr('<div class="card"><h1>⚡ ЭлектронЛэнд</h1>'+
-'<p style="text-align:center"><b>'+cur+'</b> · '+rank(u.xp)+' · уровень '+lvl(u.xp)+' · '+u.xp+' XP</p>'+
-'<div class="bar"><div style="width:'+prog+'%"></div></div>'+
-'<p class="dim" style="text-align:center">до следующего уровня: '+(100-prog)+' XP</p>'+
-'<button class="tile" onclick="schScr()">🔌 Собери схему<small>10 уровней: от первого огонька до экзамена. Ошибка — и деталь рванёт!</small></button>'+
-'<button class="tile" onclick="mazScr()">🏃 Ток-ловушка<small>5 лабиринтов: резисторы тормозят, конденсаторы прыгают, диоды пускают в одну сторону</small></button>'+
-'<button class="tile" onclick="labScr()">⚗️ Лаборатория Ампера<small>Включай батарейки, резисторы и моторы. Дым и взрывы — часть науки</small></button>'+
-'<button class="tile" onclick="duelScr()">⚔️ Дуэль электриков<small>Игра на двоих: 12 вопросов, победитель забирает XP</small></button>'+
-'<button class="tile" onclick="questScr()">📏 Квест мультиметра<small>5 настоящих измерений дома: батарейки, зарядка и даже собственное тело</small></button>'+
-'<button class="tile" onclick="profScr()">🏆 Профиль и достижения<small>Ранги, значки и кнопка «похвастаться»</small></button>'+
-'<button class="b b2" onclick="logout()">Выйти</button></div>')}
+<section class="card">
+  <h2>Журнал этой смены</h2>
+  <div id="logBox"><p style="font-size:13px;color:#777">Записей пока нет.</p></div>
+  <button class="secondary" id="btnExport">📋 Скопировать журнал текстом</button>
+</section>
 
-// ===== ИГРА 1: Собери схему =====
-var VAL={R100:100,R220:220,R470:470,R1K:1000};
-var STOCK=[{id:"R100",n:"R 100 Ом"},{id:"R220",n:"R 220 Ом"},{id:"R470",n:"R 470 Ом"},{id:"R1K",n:"R 1 кОм"},{id:"LED",n:"💡 LED"},{id:"SW",n:"🔘 Кнопка"},{id:"CAP",n:"🧯 Конденсатор"}];
-var SCHEMES=[
-{t:"Первый огонёк",v:3,need:["LED"],s:"Батарейка 3 В. LED светится, если ток 5–25 мА.",task:"собери цепь: резистор и LED"},
-{t:"LED от кроны",v:9,need:["LED"],s:"Крона 9 В — мощная штука!",task:"собери цепь: резистор и LED. Без резистора — беда"},
-{t:"С кнопкой",v:3,need:["SW","LED"],s:"Кнопка стоит в цепи до LED.",task:"кнопка + резистор + LED"},
-{t:"Двое подряд",v:9,need:["LED","LED"],s:"Два LED последовательно: каждый съедает по 2 В.",task:"резистор и два LED друг за другом"},
-{t:"Двое рядом",v:3,par:true,need:["LED","LED"],s:"Параллельная цепь: каждому LED — свой резистор!",task:"пары: резистор+LED, резистор+LED"},
-{t:"Моторчик",v:9,motor:true,need:["SW"],s:"Мотор любит ток 20–300 мА.",task:"кнопка + резистор + мотор"},
-{t:"Мигалка",v:9,need:["SW","CAP","LED"],s:"Конденсатор копит заряд и мигает.",task:"кнопка + конденсатор + резистор + LED"},
-{t:"Светофор",v:9,par:true,need:["LED","LED","LED"],s:"Три LED параллельно.",task:"три пары: резистор + LED"},
-{t:"Гирлянда",v:12,need:["LED","LED","LED","LED"],s:"Четыре LED последовательно.",task:"резистор и 4 LED подряд"},
-{t:"Экзамен",v:5,par:true,need:["SW","LED","LED"],s:"Финал: всё вместе!",task:"кнопка + две пары резистор+LED"}
-];
-function chipNm(id){if(id=="LED")return"💡";if(id=="SW")return"🔘";if(id=="CAP")return"🧯";return"R "+VAL[id]}
-function needTxt(a){var s="";for(var i=0;i<a.length;i++){s+=chipNm(a[i]);if(i<a.length-1)s+=", "}return s}
-var sc={lv:0,chain:[]};
-function schScr(){var u=U(),h='<div class="card"><h2>🔌 Собери схему</h2>'+
-'<p class="dim">Набери цепь из деталей и жми «Пуск». Перебор тока — деталь рванёт. Собрал — уровень пройден навсегда.</p>';
-for(var i=0;i<SCHEMES.length;i++){var d=u.scd[i];
-h+='<button class="tile" onclick="scOpen('+i+')">'+(d?"✅ ":"🎯 ")+(i+1)+". "+SCHEMES[i].t+"<small>"+SCHEMES[i].s+"</small></button>"}
-h+='<button class="b b2" onclick="hub()">Назад</button></div>';scr(h)}
-function scOpen(i){sc={lv:i,chain:[]};schBuild()}
-function schBuild(){var L=SCHEMES[sc.lv],h='<div class="card"><h2>🔌 Уровень '+(sc.lv+1)+': '+L.t+'</h2>'+
-'<p class="dim">'+L.s+'</p><p>Задача: '+L.task+'. Батарейка: <b>'+L.v+' В</b>.</p>'+
-'<h3>Твоя цепь</h3><p>'+(sc.chain.length?sc.chain.map(chipNm).join(" → "):'<span class="dim">пока пусто</span>')+'</p>';
-for(var i=0;i<STOCK.length;i++)h+='<button class="b" onclick="scAdd('+i+')">'+STOCK[i].n+'</button>';
-h+='<p><button class="b bg" onclick="scRun()">🔌 Пуск</button> '+
-'<button class="b b2" onclick="scUndo()">Убрать последнюю</button> '+
-'<button class="b br" onclick="scClr()">Разобрать</button></p>'+
-'<div id="sres"></div><button class="b b2" onclick="schScr()">К уровням</button></div>';scr(h)}
-function scAdd(i){sc.chain.push(STOCK[i].id);schBuild()}
-function scUndo(){sc.chain.pop();schBuild()}
-function scClr(){sc.chain=[];schBuild()}
-function mA(i){return (i*1000).toFixed(1)+" мА"}
-function scMsg(t){document.getElementById("sres").innerHTML='<p class="dim">'+t+'</p>'}
-function scBoom(t){var u=U();u.boom++;addXP(2);save();checkA();
-document.getElementById("sres").innerHTML='<p class="big">💥</p><p class="bad">'+t+' За усвоенный урок +2 XP.</p>'}
-function scWin(t){var u=U();u.scd[sc.lv]=1;u.sch++;addXP(15);save();checkA();
-var h='<p class="big">🎉</p><p class="ok">'+t+' +15 XP!</p>';
-if(sc.lv+1<SCHEMES.length)h+='<button class="b bg" onclick="scOpen('+(sc.lv+1)+')">Следующий уровень →</button> ';
-h+='<button class="b b2" onclick="schScr()">К уровням</button>';
-document.getElementById("sres").innerHTML=h}
-function scRun(){var L=SCHEMES[sc.lv],c=sc.chain,cnt={},i;
-for(i=0;i<c.length;i++)cnt[c[i]]=(cnt[c[i]]||0)+1;
-for(i=0;i<L.need.length;i++)if(!cnt[L.need[i]]){scMsg("Схема неполная: не хватает "+needTxt(L.need));return}
-var nL=cnt.LED||0,nR=cnt.R100||0,R=0,rn=0;
-for(i=0;i<c.length;i++){if(c[i].charAt(0)=="R"){R+=VAL[c[i]];rn++}}
-if(L.motor){
-if(R==0){scBoom("Короткое замыкание! Мотор без резистора от "+L.v+" В — дым и вонь 💥");return}
-var I=L.v/R;
-if(I>0.3){scBoom("Мотор задымил: ток "+mA(I)+" — слишком много 💥");return}
-if(I<0.02){scMsg("Мотор даже не дёрнулся: ток "+mA(I)+" маловат. Резистор великоват.");return}
-scWin("Мотор крутит как турбина 🎉");return}
-if(L.par){
-if(nL==0){scMsg("В этой задаче LED — добавь хотя бы один.");return}
-if(rn<nL){scBoom("Параллельная цепь без резисторов на каждом LED — вспышка, и оба погасли 💥");return}
-var imax=0,imin=99;
-for(i=0;i<c.length;i++){if(c[i].charAt(0)=="R"){var ib=(L.v-2)/VAL[c[i]];if(ib>imax)imax=ib;if(ib<imin)imin=ib}}
-if(imax>0.025){scBoom("Слишком ярко! В какой-то ветке ток "+mA(imax)+" — LED лопнул 💥");return}
-if(imin<0.004){scMsg("LED еле тлеют: ток "+mA(imin)+" — меньше 4 мА. Резисторы великоваты.");return}
-scWin("Все LED горят ровно, ток в норме 🎉");return}
-if(nL>0){
-if(R==0){if(L.v-2*nL>0){scBoom("LED без резистора от "+L.v+" В — вспышка и всё 💥")}else{scMsg("Напряжения не хватает: каждому LED нужно 2 В.")}return}
-if(L.v<=2*nL){scMsg("Не хватает напряжения: LED нужно по 2 В каждый, а батарейка "+L.v+" В.");return}
-var I=(L.v-2*nL)/R;
-if(I>0.025){scBoom("Слишком ярко! Ток "+mA(I)+" — LED сгорел 💥");return}
-if(I<0.004){scMsg("LED не светится: ток "+mA(I)+" — меньше 4 мА. Резистор великоват.");return}
-scWin("LED горит ровно! Ток "+mA(I)+" — то, что надо 🎉");return}
-scMsg("В цепи нет ни LED, ни мотора — светить нечему и крутить нечему.")}
+</main>
+<script>
+const CONFIG = {
+  API_KEY: "",        // API-ключ Yandex Vision — вставьте сюда
+  FOLDER_ID: "",      // Folder ID Yandex Cloud
+  WEBHOOK_URL: ""     // адрес вебхука (Google Apps Script / свой сервер), необязательно
+};
 
-// ===== ИГРА 2: Ток-ловушка =====
-var MAZES=[
-{t:"Разминка",m:["S....",".###.",".....","###.#","L...."]},
-{t:"Резисторы тормозят",m:["S.R..",".###R","..R..","R###.","..R.L"]},
-{t:"Диоды — двери в одну сторону",m:["S>.>L",".#.#.",".....","###.#","L...."]},
-{t:"Конденсатор-батут",m:["S..C.","#####","..C..","#####","L...."]},
-{t:"Финал: всё вместе",m:["S>.C.",".#.#.","....R","###.#","L>.C."]}
-];
-var mz={i:0,x:0,y:0,mv:0};
-function mazScr(){mazList()}
-function mazList(){var u=U(),h='<div class="card"><h2>🏃 Ток-ловушка</h2>'+
-'<p class="dim">Ты — электрон 🔴. Дойди до лампочки 💡. R — резистор (тормозит, +3 хода), C — конденсатор (прыжок через клетку), стрелки — диоды: пройти можно только по направлению стрелки.</p>';
-for(var i=0;i<MAZES.length;i++){var d=u.mz[i];
-h+='<button class="tile" onclick="mazOpen('+i+')">'+(d?"✅ ":"🎯 ")+(i+1)+". "+MAZES[i].t+"<small>уровень лабиринта</small></button>"}
-h+='<button class="b b2" onclick="hub()">Назад</button></div>';scr(h)}
-function mazOpen(i){mz={i:i,x:0,y:0,mv:0};mazShow()}
-function mazShow(){var M=MAZES[mz.i].m,h='<div class="card"><h2>🏃 '+MAZES[mz.i].t+'</h2><p>Ходов: '+mz.mv+'</p>'+
-'<p style="font-family:monospace;font-size:30px;line-height:1.3">';
-for(var y=0;y<M.length;y++){for(var x=0;x<M[y].length;x++){var ch=M[y].charAt(x);
-if(x==mz.x&&y==mz.y)ch="🔴";else if(ch=="S")ch="·";else if(ch=="L")ch="💡";
-h+=ch+" "}h+="<br>"}
-h+='</p><p><button class="b" onclick="mvz(0,-1)">↑</button> '+
-'<button class="b" onclick="mvz(0,1)">↓</button> '+
-'<button class="b" onclick="mvz(-1,0)">←</button> '+
-'<button class="b" onclick="mvz(1,0)">→</button></p>'+
-'<button class="b b2" onclick="mazList()">Назад</button></div>';scr(h)}
-function mvz(dx,dy){var M=MAZES[mz.i].m,w=M[0].length,hh=M.length;
-var nx=mz.x+dx,ny=mz.y+dy;
-if(M[mz.y].charAt(mz.x)=="C"){nx+=dx;ny+=dy}
-if(nx<0||nx>=w||ny<0||ny>=hh)return;
-var ch=M[ny].charAt(nx);
-if(ch=="#")return;
-if(ch==">"&&dx!=1)return;
-if(ch=="v"&&dy!=1)return;
-mz.x=nx;mz.y=ny;
-if(ch=="R")mz.mv+=3;else mz.mv++;
-if(ch=="L"){mazWin();return}
-mazShow()}
-function mazWin(){var u=U(),h='<p class="big">💡</p><p class="ok">Лампочка загорелась! ';
-if(!u.mz[mz.i]){u.mz[mz.i]=1;addXP(20);h+="Первое прохождение: +20 XP!"}else{addXP(5);h+="+5 XP за повтор"}
-save();checkA();
-h+='<br><button class="b bg" onclick="mazList()">К лабиринтам</button></p>';
-document.getElementById("app").innerHTML='<div class="card"><h2>🏃 Ток-ловушка</h2>'+h+'</div>'}
+const $ = id => document.getElementById(id);
+let currentImage = null;
 
-// ===== ИГРА 3: Лаборатория Ампера =====
-var FIX=[{q:"Что защищает светодиод от большого тока?",a:["Резистор","Конденсатор","Выключатель"],c:0},
-{q:"Что происходит при коротком замыкании?",a:["Ничего","Ток растёт и всё греется","Напряжение падает до нуля"],c:1},
-{q:"Сколько вольт нужно светодиоду, чтобы светиться?",a:["Примерно 2 В","Ровно 9 В","Не меньше 50 В"],c:0}];
-var lb={v:0,r:0,d:"",fi:0};
-function labScr(){lb={v:0,r:0,d:"",fi:0};labShow()}
-function labShow(){var h='<div class="card"><h2>⚗️ Лаборатория Ампера</h2>'+
-'<p class="dim">Собери цепь на столе. Ошибёшься — увидишь, почему схемы дымят, и ответишь на вопрос, чтобы починить. Это тоже опыт!</p>';
-h+='<h3>Батарейка</h3>';
-var vs=[3,5,9,12];
-for(var i=0;i<vs.length;i++)h+='<button class="b'+(lb.v==vs[i]?"":" b2")+'" onclick="labV('+vs[i]+')">'+vs[i]+' В</button>';
-h+='<h3>Резистор</h3>';
-var rs=[0,100,220,470,1000];
-for(i=0;i<rs.length;i++)h+='<button class="b'+(lb.r==rs[i]?"":" b2")+'" onclick="labR('+rs[i]+')">'+(rs[i]==0?"без резистора":"R "+rs[i]+" Ом")+'</button>';
-h+='<h3>Деталь</h3>';
-h+='<button class="b'+(lb.d=="LED"?"":" b2")+'" onclick="labD(1)">💡 LED</button>';
-h+='<button class="b'+(lb.d=="M"?"":" b2")+'" onclick="labD(2)">⚙️ Мотор</button>';
-h+='<p>Цепь: <b>'+(lb.v?lb.v+" В":"?")+' + '+(lb.r==0?"без резистора":"R "+lb.r+" Ом")+' + '+(lb.d==1?"LED":lb.d==2?"мотор":"?")+'</b></p>';
-h+='<button class="b bg" onclick="labRun()">🔌 Включить!</button>';
-h+='<div id="lres"></div><button class="b b2" onclick="hub()">Назад</button></div>';scr(h)}
-function labV(x){lb.v=x;labShow()}
-function labR(x){lb.r=x;labShow()}
-function labD(x){lb.d=x;lb.fi=Math.floor(Math.random()*FIX.length);labShow()}
-function labMsg(t){document.getElementById("lres").innerHTML='<p class="dim">'+t+'</p><p><button class="b" onclick="labAgain()">Ещё опыт</button></p>'}
-function labAgain(){lb={v:0,r:0,d:"",fi:0};labShow()}
-function labWin(t){var u=U();u.lab++;addXP(10);save();checkA();
-document.getElementById("lres").innerHTML='<p class="big">🎉</p><p class="ok">'+t+' +10 XP!</p><p><button class="b bg" onclick="labAgain()">Ещё опыт</button></p>'}
-function labBoom(t){var u=U();u.boom++;save();
-var f=FIX[lb.fi];
-document.getElementById("lres").innerHTML='<p class="big">💥</p><p class="bad">'+t+'</p>'+
-'<h3>Урок за ошибку: '+f.q+'</h3>';
-for(var i=0;i<f.a.length;i++)document.getElementById("lres").innerHTML+='<button class="b" onclick="labFix('+i+')">'+f.a[i]+'</button>'}
-function labFix(i){var f=FIX[lb.fi];
-if(i==f.c){addXP(2);checkA();save();
-document.getElementById("lres").innerHTML='<p class="big">🔧</p><p class="ok">Верно! Ошибка усвоена, +2 XP. Так рождаются настоящие электронщики.</p><p><button class="b bg" onclick="labAgain()">Ещё опыт</button></p>'}
-else document.getElementById("lres").innerHTML+='<p class="bad">Не то. Подумай ещё раз — вопрос останется на месте.</p>'}
-function labRun(){var v=lb.v,r=lb.r,d=lb.d;
-if(!v||!d){labMsg("Сначала выбери батарейку и деталь.");return}
-if(d==1){
-if(v<=2){labMsg("LED не засветился: ему нужно хотя бы 2 В. Возьми батарейку побольше.");return}
-if(r==0){labBoom("LED без резистора от "+v+" В — ток не ограничен, вспышка — и всё 💥");return}
-var I=(v-2)/r;
-if(I>0.025){labBoom("Слишком ярко! Ток "+mA(I)+" — больше 25 мА. LED перегорел 💥");return}
-if(I<0.004){labMsg("LED еле тлеет: ток "+mA(I)+" — меньше 4 мА. Резистор великоват.");return}
-labWin("LED горит ровно! Ток "+mA(I)+" — идеально ⚡");return}
-if(r==0){labBoom("Короткое замыкание! Мотор без резистора от "+v+" В — дым 💥");return}
-var I2=v/r;
-if(v<6){labMsg("Мотор не запускается: ему нужно хотя бы 6 В.");return}
-if(I2>0.3){labBoom("Мотор задымил: ток "+mA(I2)+" — перегруз 💥");return}
-if(I2<0.02){labMsg("Мотор дёргается, но не крутится: ток "+mA(I2)+" маловат.");return}
-labWin("Мотор крутит как турбина! Ток "+mA(I2)+" 🎉")}
+function status(msg, cls){ const s=$('status'); s.style.display='block'; s.className=cls; s.textContent=msg; }
 
-// ===== ИГРА 4: Дуэль электриков =====
-var DQ=[
-{q:"Что делает резистор?",a:["Ограничивает ток","Усиливает ток","Создаёт ток"],c:0},
-{q:"В чём измеряется сила тока?",a:["В вольтах","В амперах","В омах"],c:1},
-{q:"В чём измеряется напряжение?",a:["В вольтах","В амперах","В фарадах"],c:0},
-{q:"LED подключили к 9 В без резистора. Что будет?",a:["Будет мигать","Ничего","Сгорит"],c:2},
-{q:"Как обозначается плюс на батарейке?",a:["Знаком −","Знаком +","Буквой R"],c:1},
-{q:"Зачем нужен паяльник?",a:["Измерять ток","Соединять детали","Рисовать схемы"],c:1},
-{q:"Сколько вольт у пальчиковой батарейки?",a:["1,5 В","9 В","220 В"],c:0},
-{q:"Диод пропускает ток…",a:["В обе стороны","Ни в какую","В одну сторону"],c:2},
-{q:"Мультиметр в режиме V измеряет…",a:["Напряжение","Сопротивление","Ёмкость"],c:0},
-{q:"Закон Ома: I =",a:["U × R","U / R","R / U"],c:1},
-{q:"Какая деталь имеет сопротивление?",a:["Резистор","Батарейка","Кнопка"],c:0},
-{q:"Светодиод светится, когда…",a:["Ток течёт в правильную сторону","Батарейка холодная","Резистор греется"],c:0}];
-var du={};
-function duelScr(){scr('<div class="card"><h2>⚔️ Дуэль электриков</h2>'+
-'<p class="dim">Игра на одном устройстве: по очереди отвечаете на 12 вопросов. Каждая победа приносит +15 XP текущему игроку профиля.</p>'+
-'<input id="d1" placeholder="Имя первого игрока"><input id="d2" placeholder="Имя второго игрока">'+
-'<button class="b bg" onclick="duelStart()">Начать дуэль</button> '+
-'<button class="b b2" onclick="hub()">Назад</button></div>')}
-function duelStart(){du={n1:V("d1").trim()||"Игрок 1",n2:V("d2").trim()||"Игрок 2",s1:0,s2:0,i:0,t:1};duelQ()}
-function duelQ(){if(du.i>=DQ.length){duelEnd();return}
-var q=DQ[du.i],who=du.t==1?du.n1:du.n2;
-var h='<div class="card"><h2>⚔️ Вопрос '+(du.i+1)+' из '+DQ.length+'</h2>'+
-'<p>Отвечает: <b>'+who+'</b></p><p class="big" style="font-size:20px">'+q.q+'</p>';
-for(var i=0;i<q.a.length;i++)h+='<button class="b" onclick="duelAns('+i+')">'+q.a[i]+'</button>';
-h+='<p class="dim">Счёт: '+du.n1+' — '+du.s1+' : '+du.s2+' — '+du.n2+'</p></div>';scr(h)}
-function duelAns(i){var q=DQ[du.i];
-if(i==q.c){if(du.t==1)du.s1++;else du.s2++}
-du.i++;du.t=3-du.t;duelQ()}
-function duelEnd(){var w=null;
-if(du.s1>du.s2)w=du.n1;else if(du.s2>du.s1)w=du.n2;
-var h='<div class="card"><h2>⚔️ Итог дуэли</h2><p class="big">⚔️</p>'+
-'<p>'+du.n1+': <b>'+du.s1+'</b> · '+du.n2+': <b>'+du.s2+'</b></p>';
-if(w){var u=U();u.duelW++;addXP(15);give("duel");save();checkA();
-h+='<p class="ok">Победил '+w+'! +15 XP игроку '+cur+' 🎉</p>'}
-else h+='<p class="dim">Ничья — оба молодцы!</p>';
-h+='<p><button class="b bg" onclick="duelScr()">Реванш</button> <button class="b b2" onclick="hub()">В хаб</button></p></div>';scr(h)}
+$('btnCam').onclick = () => $('fileInput').click();
+$('fileInput').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => { currentImage = ev.target.result; $('preview').src=currentImage; $('preview').style.display='block'; $('btnOcr').classList.remove('hidden'); status('Фото готово. Нажмите «Распознать».', 'st-ok'); };
+  r.readAsDataURL(f);
+};
 
-// ===== ИГРА 5: Квест мультиметра =====
-var QT=[["Измерь пальчиковую батарейку АА. Сколько вольт показал мультиметр (или что написано на корпусе)?",1,1.8,"В"],
-["Измерь крону — ту самую прямоугольную батарейку.",7,10,"В"],
-["Осторожно, не разбирай! Измерь зарядку от телефона: вилка USB даёт сколько вольт?",4.5,5.6,"В"],
-["Соедини две пальчиковые батарейки последовательно (плюс к минусу) и измерь.",2,3.6,"В"],
-["Переключи мультиметр в режим Ом и зажми щупы двумя руками. Какое сопротивление у твоего тела?",10000,3000000,"Ом"]];
-function questScr(){var u=U(),h='<div class="card"><h2>📏 Квест мультиметра</h2>'+
-'<p class="dim">Настоящие измерения! Если мультиметра нет — на батарейках напряжение написано прямо на корпусе. Вводи показание — игра проверит.</p>';
-for(var i=0;i<QT.length;i++){var done=u.qs[i];
-h+='<h3>'+(done?"✅ ":"🎯 ")+(i+1)+'. '+QT[i][0]+'</h3>';
-if(!done)h+='<input id="q'+i+'" inputmode="decimal" placeholder="Число в '+QT[i][3]+'">'+
-'<button class="b" onclick="qChk('+i+')">Проверить</button><div id="qm'+i+'" class="bad"></div>'}
-h+='<button class="b b2" onclick="hub()">Назад</button></div>';scr(h)}
-function qChk(i){var u=U(),t=parseFloat(V("q"+i).replace(",",".")),L=QT[i];
-if(isNaN(t))return;
-if(t>=L[1]&&t<=L[2]){u.qs[i]=1;addXP(10);save();checkA();questScr()}
-else document.getElementById("qm"+i).innerHTML="Не похоже на правду: ожидаем примерно "+L[1]+"–"+L[2]+" "+L[3]}
+$('btnOcr').onclick = () => {
+  if(!CONFIG.API_KEY){ status('OCR-ключ не задан. Заполните поля вручную по этикетке — форма ниже уже открыта.', 'st-warn'); showForm(); return; }
+  const b64 = currentImage.split(',')[1];
+  const body = { analyze_specs:{ content:b64, features:[{type:'TEXT', text_detection_config:{text_types:['PRINTED']}}] } };
+  fetch('https://ocr.api.cloud.yandex.net/ocr/v1/annotate', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', Authorization:'Api-Key '+CONFIG.API_KEY, 'x-folder-id':CONFIG.FOLDER_ID },
+    body: JSON.stringify(body)
+  })
+  .then(r => r.json())
+  .then(d => {
+    const txt = JSON.stringify(d);
+    const res = parseLabel(txt);
+    fillForm(res);
+  })
+  .catch(e => status('Ошибка OCR: '+e.message+'. Заполните вручную.', 'st-err'));
+};
 
-// ===== профиль =====
-function profScr(){var u=U(),h='<div class="card"><h2>🏆 '+cur+'</h2>'+
-'<p>'+rank(u.xp)+' · уровень '+lvl(u.xp)+' · '+u.xp+' XP</p>'+
-'<div class="bar"><div style="width:'+(u.xp%100)+'%"></div></div>';
-h+='<h3>Достижения</h3><p>';
-for(var i=0;i<ACH.length;i++){var a=ACH[i];
-h+='<span class="chip">'+(u.ach[a[0]]?a[1]:"▫")+" "+a[2]+'</span> '}
-h+='</p><h3>Статистика</h3><p>Схем собрано: '+u.sch+' · Взрывов: '+u.boom+' · Опытов в лабе: '+u.lab+' · Дуэлей выиграно: '+u.duelW+'</p>';
-h+='<p><button class="b" onclick="brag()">📋 Скопировать и похвастаться</button> '+
-'<button class="b b2" onclick="hub()">Назад</button></p><div id="brg" class="ok"></div></div>';scr(h)}
-function brag(){var u=U();
-var t="⚡ ЭлектронЛэнд: я — "+cur+", "+rank(u.xp)+", уровень "+lvl(u.xp)+", "+u.xp+" XP, достижений "+Object.keys(u.ach).length+" из "+ACH.length+"!";
-var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();
-try{document.execCommand("copy");document.getElementById("brg").innerHTML="Скопировано — неси похвастаться!"}catch(e){document.getElementById("brg").innerHTML=t}
-document.body.removeChild(ta)}
+function grab(s, re){ const m = s.match(re); return m ? m[1] : ''; }
 
-// ===== старт =====
-authScr();
-</script></body></html>
+function parseLabel(s){
+  const out = {};
+  out.ballon = grab(s, /Баллон[^0-9]{0,30}(\d{4,6})/i) || grab(s, /(\d{4,6})\s*\|\s*4/i) || grab(s, /(\d{4,6})/);
+  out.passport = grab(s, /(\d{4,6}-\d{2})/);
+  out.conc = grab(s, /(?:CH4|метан|метан)[^0-9]{0,40}(\d{1,2}[.,]\d{1,3})/i);
+  out.volume = grab(s, /(\d{1,2})\s*дм/i);
+  out.pressure = grab(s, /(\d{1,2}[.,]\d)\s*МПа/i);
+  return out;
+}
+
+function fillForm(r){
+  if(r.ballon) $('ballonNo').value = r.ballon;
+  if(r.passport) $('passportNo').value = r.passport;
+  if(r.volume) $('volume').value = r.volume;
+  if(r.pressure) $('pressure').value = r.pressure.replace(',', '.');
+  if(r.conc){ $('conc').value = r.conc.replace(',', '.'); recalc(); }
+  showForm();
+  status('Распознано. Сверьте цифры с этикеткой и поправьте при необходимости.', 'st-warn');
+}
+
+function showForm(){ $('formCard').classList.remove('hidden'); const t=new Date(); $('date').value = t.toISOString().slice(0,10); recalc(); }
+
+function recalc(){
+  const g = $('gas').value, c = parseFloat($('conc').value.replace(',','.'));
+  if(isNaN(c)){ $('lkpr').value=''; $('coPpm').value=''; return; }
+  if(g.startsWith('Метан')) $('lkpr').value = (c/4.4*100).toFixed(1);
+  else if(g.includes('CO')) { $('lkpr').value = (c/12.5*100).toFixed(1); $('coPpm').value = Math.round(c*10000); }
+  else { $('lkpr').value='—'; $('coPpm').value='—'; }
+}
+$('gas').onchange = recalc; $('conc').oninput = recalc;
+
+const SENSITIVE = ['выдача клиенту','выдача в Газ-Лаб'];
+$('opType').onchange = () => $('whoLabel').textContent = SENSITIVE.includes($('opType').value) ? 'Клиент / сотрудник' : 'Кто принимает / передал';
+
+function rec(e){ try{ JSON.parse(e); }catch(err){ return; } let logs = JSON.parse(localStorage.getItem('pgs_log')||'[]'); return logs; }
+
+$('btnSave').onclick = () => {
+  const rec = {
+    date: $('date').value,
+    ballon: $('ballonNo').value.trim(),
+    passport: $('passportNo').value.trim(),
+    gas: $('gas').value,
+    conc: $('conc').value,
+    lkpr: $('lkpr').value,
+    op: $('opType').value,
+    who: $('who').value.trim()
+  };
+  if(!rec.ballon){ status('Не указан № баллона.', 'st-err'); return; }
+  let logs = JSON.parse(localStorage.getItem('pgs_log')||'[]');
+  logs.push(rec);
+  localStorage.setItem('pgs_log', JSON.stringify(logs));
+  renderLog();
+  if(CONFIG.WEBHOOK_URL){
+    fetch(CONFIG.WEBHOOK_URL, { method:'POST', body: JSON.stringify(rec) }).catch(()=>{});
+  }
+  status('Запись внесена.', 'st-ok');
+};
+
+function renderLog(){
+  const logs = JSON.parse(localStorage.getItem('pgs_log')||'[]');
+  if(!logs.length) return;
+  let h = '<table><tr><th>Дата</th><th>№ баллона</th><th>Паспорт</th><th>Операция</th><th>% об.</th><th>НКПР</th><th>Кто</th></tr>';
+  logs.slice().reverse().forEach(r => {
+    h += '<tr><td>'+r.date+'</td><td>'+r.ballon+'</td><td>'+r.passport+'</td><td>'+r.op+'</td><td>'+r.conc+'</td><td>'+r.lkpr+'</td><td>'+r.who+'</td></tr>';
+  });
+  $('logBox').innerHTML = h + '</table>';
+}
+renderLog();
+
+$('btnExport').onclick = () => {
+  const logs = JSON.parse(localStorage.getItem('pgs_log')||'[]');
+  if(!logs.length){ status('Журнал пуст.', 'st-warn'); return; }
+  const lines = logs.map(r => [r.date,r.ballon,r.passport,r.gas,r.conc,r.lkpr,r.op,r.who].join(';')).join('\n');
+  navigator.clipboard.writeText(lines).then(()=>status('Журнал скопирован. Вставьте в Excel (Ctrl+V).','st-ok')).catch(()=>status('Не удалось скопировать.','st-err'));
+};
+</script>
+</body>
+</html>

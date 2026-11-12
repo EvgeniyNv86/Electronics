@@ -10,7 +10,7 @@
   .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
   h1 { font-size: 22px; margin: 8px 0 4px; }
   .sub { color: #5b6b7b; font-size: 14px; margin-bottom: 12px; }
-  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
   .stat { background: #fff; border-radius: 12px; padding: 10px 6px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
   .stat b { display: block; font-size: 20px; }
   .stat span { font-size: 11px; color: #5b6b7b; }
@@ -33,6 +33,8 @@
   .t-full { background: #e7f6ec; color: #1d6a34; }
   .t-empty { background: #fff4e0; color: #8a5a00; }
   .t-bad { background: #fdeaea; color: #a12a2a; }
+  .t-gaslab { background: #e8f0fe; color: #14508c; }
+  .t-work { background: #f3e8fe; color: #6a1da1; }
   .t-al { background: #e8f0fe; color: #14508c; }
 </style>
 </head>
@@ -46,7 +48,10 @@
     <div class="stat"><b id="stFull">0</b><span>полных</span></div>
     <div class="stat"><b id="stEmpty">0</b><span>пустых</span></div>
     <div class="stat"><b id="stBad">0</b><span>не годн.</span></div>
+    <div class="stat"><b id="stGaslab">0</b><span>Газ-Лаб</span></div>
+    <div class="stat"><b id="stWork">0</b><span>в работе</span></div>
     <div class="stat"><b id="stAl">0</b><span>алюм.</span></div>
+    <div class="stat"><b id="stSt">0</b><span>металл</span></div>
   </div>
 
   <div class="card">
@@ -59,13 +64,15 @@
     <div class="row">
       <div>
         <label>Материал</label>
-        <select id="mat"><option>Алюминий</option><option>Сталь</option></select>
+        <select id="mat"><option>Алюминий</option><option>Металл</option></select>
       </div>
       <div>
         <label>Состояние</label>
         <select id="cond" onchange="condChanged()">
           <option value="full">Полный</option>
           <option value="empty">Пустой</option>
+          <option value="gaslab">В Газ-Лабе</option>
+          <option value="work">В работе</option>
           <option value="bad">Не годен</option>
         </select>
       </div>
@@ -74,8 +81,10 @@
       <label>Газ</label>
       <select id="gas">
         <option>Метан (CH4)</option>
-        <option>Пропан (C3H8)</option>
+        <option>Сероводород (H2S)</option>
+        <option>Оксид углерода (CO)</option>
         <option>Кислород (O2)</option>
+        <option>Пропан (C3H8)</option>
         <option>Азот (N2)</option>
         <option>Воздух</option>
         <option>Аргон (Ar)</option>
@@ -111,20 +120,28 @@ function condChanged() {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+function condName(c) {
+  return c==='full' ? 'полный' : c==='empty' ? 'пустой' : c==='gaslab' ? 'в Газ-Лабе' : c==='work' ? 'в работе' : 'не годен';
+}
+function condTag(c) {
+  const cls = c==='full' ? 't-full' : c==='empty' ? 't-empty' : c==='gaslab' ? 't-gaslab' : c==='work' ? 't-work' : 't-bad';
+  return '<span class="tag ' + cls + '">' + condName(c) + '</span>';
+}
+
 function render() {
   document.getElementById('stAll').textContent = items.length;
   document.getElementById('stFull').textContent = items.filter(i => i.cond==='full').length;
   document.getElementById('stEmpty').textContent = items.filter(i => i.cond==='empty').length;
   document.getElementById('stBad').textContent = items.filter(i => i.cond==='bad').length;
+  document.getElementById('stGaslab').textContent = items.filter(i => i.cond==='gaslab').length;
+  document.getElementById('stWork').textContent = items.filter(i => i.cond==='work').length;
   document.getElementById('stAl').textContent = items.filter(i => i.mat==='Алюминий').length;
+  document.getElementById('stSt').textContent = items.filter(i => i.mat==='Металл').length;
   document.getElementById('cnt').textContent = items.length;
   const list = document.getElementById('list');
   list.innerHTML = items.map((it, idx) => {
-    const tag = it.cond==='full' ? '<span class="tag t-full">полный</span>'
-              : it.cond==='empty' ? '<span class="tag t-empty">пустой</span>'
-              : '<span class="tag t-bad">не годен</span>';
     const gas = it.cond==='full' ? ' · ' + esc(it.gas) + (it.conc ? ' ' + esc(it.conc) + '%' : '') : '';
-    return '<div class="entry"><div class="info"><b>№ ' + esc(it.num) + '</b>' + tag +
+    return '<div class="entry"><div class="info"><b>№ ' + esc(it.num) + '</b>' + condTag(it.cond) +
       '<span class="tag t-al">' + esc(it.mat) + '</span><br>' +
       (it.pass ? 'паспорт ' + esc(it.pass) : 'паспорт —') + gas +
       '</div><button class="del" onclick="del(' + idx + ')">✕</button></div>';
@@ -164,8 +181,7 @@ function del(idx) { items.splice(idx, 1); save(); render(); }
 
 function csv() {
   const rows = [['№ баллона','№ паспорта','Материал','Состояние','Газ','Концентрация %','Время']];
-  items.forEach(i => rows.push([i.num, i.pass, i.mat,
-    i.cond==='full'?'полный':i.cond==='empty'?'пустой':'не годен', i.gas, i.conc, i.time]));
+  items.forEach(i => rows.push([i.num, i.pass, i.mat, condName(i.cond), i.gas, i.conc, i.time]));
   return '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(';')).join('\n');
 }
 

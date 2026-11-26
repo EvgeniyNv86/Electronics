@@ -22,8 +22,19 @@
   .btn-sec{background:#2a303c;color:var(--text);border:1px solid var(--border)}
   .btn-danger{background:#5a2a2a;color:#ffcccc}
   .btn-ok{background:#2d5a2f;color:#d8ffd8}
-  .search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;
-          background:var(--cell);color:var(--text);width:min(320px,90vw);font-size:14px}
+  .search-row{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px auto 18px}
+  .search-wrap{display:flex;align-items:center;gap:6px;background:var(--cell);
+    border:1.5px solid var(--border);border-radius:24px;padding:5px 8px 5px 16px;
+    width:min(560px,94vw);transition:border-color .2s,box-shadow .2s}
+  .search-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,152,0,.18)}
+  .search-icon{font-size:15px;flex:none;opacity:.8}
+  .search{flex:1;border:none;background:transparent;color:var(--text);font-size:15px;outline:none;min-width:0}
+  .search::placeholder{color:var(--muted)}
+  .clear-btn{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;
+    padding:4px 7px;border-radius:50%;display:none;line-height:1}
+  .clear-btn:hover{color:var(--text);background:#2a303c}
+  .search-count{font-size:12px;color:var(--muted);min-height:15px;text-align:center}
+  .search-count b{color:var(--accent)}
   .gear{width:42px;height:36px;padding:0;font-size:16px}
   .status{text-align:center;font-size:12px;color:var(--muted);min-height:16px;margin-bottom:14px}
   .status.ok{color:var(--ok)} .status.err{color:#ef5350}
@@ -74,20 +85,29 @@
   .hint b{color:var(--text)}
   input[type=file]{display:none}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <h1>📦 Картотека радиодеталей</h1>
 <div class="subtitle">Клик по ящичку — записать содержимое. База: этот браузер + GitHub.</div>
 <div class="controls">
-  <input id="search" class="search" placeholder="🔍 Поиск: резистор, 10K, модуль…">
   <button class="btn-primary" onclick="openAdd()">➕ Добавить деталь</button>
   <button class="btn-sec" onclick="pushToGithub()">⬆️ На GitHub</button>
   <button class="btn-sec" onclick="pullFromGithub()">⬇️ С GitHub</button>
   <button class="btn-sec" onclick="exportJSON()">⬇️ Экспорт JSON</button>
   <button class="btn-sec" onclick="document.getElementById('importFile').click()">⬆️ Импорт JSON</button>
   <button class="btn-sec" onclick="exportCSV()">📄 CSV</button>
+  <button class="btn-sec" onclick="exportExcel()">📊 Excel</button>
   <button class="btn-sec gear" onclick="openSettings()" title="Настройки">⚙</button>
   <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+</div>
+<div class="search-row">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input id="search" class="search" placeholder="Что ищем? Название, номинал, категория, код ящика…" autocomplete="off">
+    <button class="clear-btn" id="clearSearch" onclick="clearSearch()" title="Очистить">✕</button>
+  </div>
+  <div class="search-count" id="searchCount"></div>
 </div>
 <div class="status" id="status"></div>
 <div class="banner" id="banner">
@@ -236,6 +256,7 @@ function cellCode(sec,r,c){
 }
 function render(){
   const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  let matched=0, filledCount=0;
   const app=document.getElementById('app'); app.innerHTML='';
   for(const sec of SECTIONS){
     const title=(state.titles&&state.titles[sec.id])||sec.title;
@@ -250,6 +271,8 @@ function render(){
       const d=state.cells[code];
       const name=d?(d.n||''):'';
       const match=!q||((name+' '+(d&&d.note||'')+' '+(d&&d.c||'')+' '+code).toLowerCase().includes(q));
+      if(match&&name) matched++;
+      if(name) filledCount++;
       const el=document.createElement('div');
       el.className='cell'+(name?' filled':'')+((q&&!match)?' dim':'');
       if(name) el.title=name;
@@ -261,6 +284,30 @@ function render(){
     }
     p.appendChild(g); app.appendChild(p);
   }
+  const cb=document.getElementById('clearSearch');
+  if(cb) cb.style.display=q?'inline-block':'none';
+  const sc=document.getElementById('searchCount');
+  if(sc){
+    if(q){
+      const qv=document.getElementById('search').value.trim();
+      sc.innerHTML='По запросу «'+qv+'»: найдено <b>'+matched+'</b> '+pluralRu(matched,['ящик','ящика','ящиков']);
+    } else {
+      sc.innerHTML=filledCount
+        ? 'В картотеке: <b>'+filledCount+'</b> '+pluralRu(filledCount,['запись','записи','записей'])+' · нажмите <b>«/»</b>, чтобы искать'
+        : '';
+    }
+  }
+}
+function pluralRu(n,forms){
+  const n10=n%10,n100=n%100;
+  if(n100>=11&&n100<=14) return forms[2];
+  if(n10===1) return forms[0];
+  if(n10>=2&&n10<=4) return forms[1];
+  return forms[2];
+}
+function clearSearch(){
+  const s=document.getElementById('search');
+  s.value=''; render(); s.focus();
 }
 function openModal(sec,code){
   current={sec,code};
@@ -292,7 +339,12 @@ function rename(id){
   const t=prompt('Новое название секции:',(state.titles&&state.titles[id])||sec.title);
   if(t&&t.trim()){ state.titles[id]=t.trim(); save(); render(); }
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
+  const ae=document.activeElement;
+  const typing=ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA');
+  if(e.key==='/'&&!typing){ e.preventDefault(); document.getElementById('search').focus(); }
+});
 document.getElementById('search').addEventListener('input',render);
 
 // ===== УМНОЕ ДОБАВЛЕНИЕ =====
@@ -560,6 +612,57 @@ function exportCSV(){
   const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download='cartoteka.csv'; a.click();
+}
+function exportExcel(){
+  if(typeof XLSX==='undefined'){ status('Библиотека Excel не загрузилась — при первом открытии нужен интернет',false,true); return; }
+  save();
+  const wb=XLSX.utils.book_new();
+
+  // Лист 1: полная картотека
+  const rows=[['Ящик','Секция','Название','Категория','Кол-во','Заметка']];
+  const bySec={}, byCat={};
+  let total=0, totalQty=0;
+  for(const sec of SECTIONS){
+    const title=(state.titles&&state.titles[sec.id])||sec.title;
+    bySec[title]=0;
+    for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
+      const code=cellCode(sec,r,c), d=state.cells[code];
+      if(!d) continue;
+      const q=parseInt(d.qty,10)||0;
+      rows.push([code,title,d.n,d.c||'Прочее',q||'',d.note||'']);
+      bySec[title]++;
+      byCat[d.c||'Прочее']=(byCat[d.c||'Прочее']||0)+1;
+      total++; totalQty+=q;
+    }
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:9},{wch:38},{wch:40},{wch:16},{wch:9},{wch:80}];
+  ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length-1,c:5}})};
+  XLSX.utils.book_append_sheet(wb,ws,'Картотека');
+
+  // Лист 2: сводка
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const sum=[
+    ['📦 Картотека радиодеталей',''],
+    ['Дата выгрузки',now.toLocaleString('ru-RU')],
+    [''],
+    ['Показатель','Значение'],
+    ['Записей (непустых ящиков)',total],
+    ['Всего штук (сумма количеств)',totalQty||'—'],
+    [''],
+    ['По секциям','Записей']
+  ];
+  for(const k in bySec) sum.push([k,bySec[k]||'—']);
+  sum.push([''],['По категориям','Записей']);
+  for(const k in byCat) sum.push([k,byCat[k]]);
+  const ws2=XLSX.utils.aoa_to_sheet(sum);
+  ws2['!cols']=[{wch:38},{wch:14}];
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:1}}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Сводка');
+
+  XLSX.writeFile(wb,'cartoteka_'+now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'.xlsx');
+  status('✅ Excel выгружен: листы «Картотека» и «Сводка»',true);
 }
 function clearAll(){
   if(!confirm('Удалить ВСЕ записи? Сначала экспортируйте резерв!')) return;

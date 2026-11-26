@@ -31,6 +31,7 @@
               border-radius:6px;padding:4px 8px;font-size:12px;font-weight:400}
   .grid{display:grid;gap:8px}
   .g8{grid-template-columns:repeat(8,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:repeat(2,1fr)}
   .cell{background:var(--cell);border:1px solid var(--border);border-radius:10px;
         padding:8px;cursor:pointer;min-height:58px;transition:border-color .2s,box-shadow .2s}
@@ -38,9 +39,10 @@
   .cell.filled{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
   .cell.dim{opacity:.25}
   .cell .code{font-size:10px;color:var(--muted);letter-spacing:.5px}
-  .cell .row{display:flex;align-items:center;gap:6px;margin-top:4px}
+  .cell .row{display:flex;align-items:center;gap:6px;margin-top:4px;min-width:0}
   .dot{width:8px;height:8px;border-radius:50%;flex:none}
-  .cell .name{font-size:13px;line-height:1.25;word-break:break-word}
+  .cell .name{font-size:13px;line-height:1.25;min-width:0;flex:1;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cell.pop{animation:pop .35s ease}
   @keyframes pop{0%{transform:scale(1)}45%{transform:translateY(-7px) scale(1.09)}100%{transform:scale(1)}}
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
@@ -93,12 +95,12 @@ const CATS = {
   'Модули':'#ffb74d','Разъёмы':'#4dd0e1','Провода':'#a1887f','Крепёж':'#90a4ae','Прочее':'#f06292'
 };
 const SECTIONS = [
-  {id:'A', title:'Органайзер DEKO A (верхний)', type:'deko', cols:8, rows:9, wide:true},
-  {id:'B', title:'Органайзер DEKO B (нижний)',  type:'deko', cols:8, rows:9, wide:true},
-  {id:'C', title:'Мини-шкафчик C — резисторы (левый, верх)', type:'mini', cols:2, rows:4},
-  {id:'D', title:'Мини-шкафчик D — резисторы (левый, низ)',  type:'mini', cols:2, rows:4},
-  {id:'E', title:'Мини-шкафчик E — резисторы (центр)',       type:'mini', cols:2, rows:4},
-  {id:'F', title:'Мини-шкафчик F — резерв (справа)',         type:'mini', cols:2, rows:4},
+  {id:'A', title:'Органайзер DEKO A (верхний)', type:'deko', cols:8, rows:9},
+  {id:'B', title:'Органайзер DEKO B (нижний)',  type:'deko', cols:8, rows:9},
+  {id:'C', title:'Мини-шкафчик C — резисторы (левый, верх)', type:'mini', cols:3, rows:4},
+  {id:'D', title:'Мини-шкафчик D — резисторы (левый, низ)',  type:'mini', cols:3, rows:4},
+  {id:'E', title:'Мини-шкафчик E — резисторы (центр)',       type:'mini', cols:3, rows:4},
+  {id:'F', title:'Мини-шкафчик F — резерв (справа)',         type:'mini', cols:3, rows:4},
   {id:'BAT', title:'Держатель батареек', type:'battery', cols:2, rows:1,
    labels:['AAA','AA']}
 ];
@@ -132,10 +134,12 @@ function render(){
   const app=document.getElementById('app'); app.innerHTML='';
   for(const sec of SECTIONS){
     const title=(state.titles&&state.titles[sec.id])||sec.title;
-    const p=document.createElement('div'); p.className='panel'+(sec.wide?' wide':'');
+    const p=document.createElement('div');
+    p.className='panel'+(sec.type==='deko'?' wide':'');
     p.innerHTML='<div class="panel-head"><div class="panel-title">'+title+
       '</div><button class="rename-btn" onclick="rename(\''+sec.id+'\')">✏ переименовать</button></div>';
-    const g=document.createElement('div'); g.className='grid '+(sec.cols===8?'g8':'g2');
+    const g=document.createElement('div');
+    g.className='grid '+(sec.cols===8?'g8':(sec.cols===3?'g3':'g2'));
     for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
       const code=cellCode(sec,r,c);
       const d=state.cells[code];
@@ -143,7 +147,7 @@ function render(){
       const match=!q||((name+' '+(d&&d.note||'')+' '+(d&&d.c||'')+' '+code).toLowerCase().includes(q));
       const el=document.createElement('div');
       el.className='cell'+(name?' filled':'')+((q&&!match)?' dim':'');
-      el.title=name;
+      if(name) el.title=name+((d&&d.note)?' — '+d.note:'');
       el.innerHTML='<div class="code">'+code+'</div><div class="row">'+
         (name?'<span class="dot" style="background:'+(CATS[d.c]||'#f06292')+'"></span>':'')+
         '<span class="name">'+(name||'')+'</span></div>';

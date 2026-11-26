@@ -1,209 +1,221 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ревизия баллонов</title>
+<title>Картотека радиодеталей</title>
 <style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f2f4f8; color: #1c2733; }
-  .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 22px; margin: 8px 0 4px; }
-  .sub { color: #5b6b7b; font-size: 14px; margin-bottom: 12px; }
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
-  .stat { background: #fff; border-radius: 12px; padding: 10px 6px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-  .stat b { display: block; font-size: 20px; }
-  .stat span { font-size: 11px; color: #5b6b7b; }
-  .card { background: #fff; border-radius: 16px; padding: 16px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-  .card h2 { font-size: 17px; margin: 0 0 12px; color: #14508c; }
-  label { display: block; font-size: 13px; color: #5b6b7b; margin: 10px 0 4px; }
-  input, select { width: 100%; padding: 12px; font-size: 16px; border: 1px solid #cfd8e3; border-radius: 10px; background: #fff; }
-  .row { display: flex; gap: 10px; }
-  .row > div { flex: 1; }
-  button { width: 100%; padding: 14px; font-size: 17px; border: none; border-radius: 12px; background: #14508c; color: #fff; font-weight: 600; margin-top: 14px; cursor: pointer; }
-  button.gray { background: #e8edf3; color: #1c2733; }
-  .msg { padding: 12px; border-radius: 10px; margin: 10px 0; font-size: 14px; }
-  .ok { background: #e7f6ec; color: #1d6a34; }
-  .err { background: #fdeaea; color: #a12a2a; }
-  .entry { background: #fff; border-radius: 12px; padding: 10px 12px; margin: 8px 0; display: flex; align-items: center; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-  .entry .info { flex: 1; font-size: 14px; }
-  .entry .info b { font-size: 15px; }
-  .entry .del { color: #a12a2a; font-size: 18px; background: none; border: none; padding: 6px; margin: 0; width: auto; cursor: pointer; }
-  .tag { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 12px; margin-left: 6px; }
-  .t-full { background: #e7f6ec; color: #1d6a34; }
-  .t-empty { background: #fff4e0; color: #8a5a00; }
-  .t-bad { background: #fdeaea; color: #a12a2a; }
-  .t-gaslab { background: #e8f0fe; color: #14508c; }
-  .t-work { background: #f3e8fe; color: #6a1da1; }
-  .t-al { background: #e8f0fe; color: #14508c; }
+  :root{
+    --bg:#15181d; --panel:#1e222a; --cell:#232833; --border:#3a4150;
+    --ok:#4caf50; --accent:#ff9800; --text:#e8eaf0; --muted:#9aa3b0;
+  }
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+       background:var(--bg);color:var(--text);margin:0;padding:16px}
+  h1{text-align:center;font-size:22px;margin:8px 0 4px}
+  .subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
+  .controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+  button{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;
+         font-size:13px;transition:transform .15s,opacity .15s}
+  button:hover{opacity:.9;transform:translateY(-1px)}
+  .btn-primary{background:var(--accent);color:#1a1a1a}
+  .btn-sec{background:#2a303c;color:var(--text);border:1px solid var(--border)}
+  .btn-danger{background:#5a2a2a;color:#ffcccc}
+  .search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;
+          background:var(--cell);color:var(--text);width:min(320px,90vw);font-size:14px}
+  .panel{background:var(--panel);border-radius:14px;padding:16px;margin:0 auto 22px;max-width:940px}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .panel-title{color:var(--accent);font-weight:700;font-size:17px}
+  .rename-btn{background:none;border:1px dashed var(--border);color:var(--muted);
+              border-radius:6px;padding:4px 8px;font-size:12px;font-weight:400}
+  .grid{display:grid;gap:8px}
+  .g8{grid-template-columns:repeat(8,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .cell{background:var(--cell);border:1px solid var(--border);border-radius:10px;
+        padding:8px;cursor:pointer;min-height:58px;transition:border-color .2s,box-shadow .2s}
+  .cell:hover,.cell.filled:hover,.cell:hover.dim{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,152,0,.55),0 4px 14px rgba(255,152,0,.25);transform:translateY(-2px)}
+  .cell.filled{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
+  .cell.dim{opacity:.25}
+  .cell .code{font-size:10px;color:var(--muted);letter-spacing:.5px}
+  .cell .row{display:flex;align-items:center;gap:6px;margin-top:4px}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .cell .name{font-size:13px;line-height:1.25;word-break:break-word}
+  .cell.pop{animation:pop .35s ease}
+  @keyframes pop{0%{transform:scale(1)}45%{transform:translateY(-7px) scale(1.09)}100%{transform:scale(1)}}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);opacity:0;
+         pointer-events:none;background:var(--panel);border:1px solid var(--border);border-radius:14px;
+         padding:20px;width:min(420px,92vw);z-index:11;transition:transform .3s cubic-bezier(.2,1.4,.4,1),opacity .25s;
+         box-shadow:0 18px 50px rgba(0,0,0,.5)}
+  .modal.show{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+  .modal h3{margin:0 0 12px;font-size:16px;color:var(--accent)}
+  .modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  .modal input,.modal select,.modal textarea{width:100%;padding:8px 10px;border:1px solid var(--border);
+        border-radius:8px;background:var(--cell);color:var(--text);font-size:14px;font-family:inherit}
+  .modal textarea{resize:vertical;min-height:52px}
+  .modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .msg{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
+  input[type=file]{display:none}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Ревизия баллонов</h1>
-  <div class="sub">Добавляйте баллоны по одному. Данные сохраняются в телефоне.</div>
+<h1>📦 Картотека радиодеталей</h1>
+<div class="subtitle">Клик по ящичку — записать содержимое. Данные хранятся в этом браузере.</div>
+<div class="controls">
+  <input id="search" class="search" placeholder="🔍 Поиск: резистор, 10K, модуль…">
+  <button class="btn-primary" onclick="exportJSON()">⬇️ Экспорт JSON</button>
+  <button class="btn-sec" onclick="document.getElementById('importFile').click()">⬆️ Импорт JSON</button>
+  <button class="btn-sec" onclick="exportCSV()">📄 Экспорт CSV</button>
+  <button class="btn-danger" onclick="clearAll()">🗑 Очистить всё</button>
+  <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+</div>
+<div id="app"></div>
 
-  <div class="stats">
-    <div class="stat"><b id="stAll">0</b><span>всего</span></div>
-    <div class="stat"><b id="stFull">0</b><span>полных</span></div>
-    <div class="stat"><b id="stEmpty">0</b><span>пустых</span></div>
-    <div class="stat"><b id="stBad">0</b><span>не годн.</span></div>
-    <div class="stat"><b id="stGaslab">0</b><span>Газ-Лаб</span></div>
-    <div class="stat"><b id="stWork">0</b><span>в работе</span></div>
-    <div class="stat"><b id="stAl">0</b><span>алюм.</span></div>
-    <div class="stat"><b id="stSt">0</b><span>металл</span></div>
-  </div>
-
-  <div class="card">
-    <h2>Новый баллон</h2>
-    <div id="msg"></div>
-    <label>№ баллона *</label>
-    <input id="num" inputmode="numeric" placeholder="например 02871">
-    <label>№ паспорта (если читается)</label>
-    <input id="pass" placeholder="например 04534-26">
-    <div class="row">
-      <div>
-        <label>Материал</label>
-        <select id="mat"><option>Алюминий</option><option>Металл</option></select>
-      </div>
-      <div>
-        <label>Состояние</label>
-        <select id="cond" onchange="condChanged()">
-          <option value="full">Полный</option>
-          <option value="empty">Пустой</option>
-          <option value="gaslab">В Газ-Лабе</option>
-          <option value="work">В работе</option>
-          <option value="bad">Не годен</option>
-        </select>
-      </div>
-    </div>
-    <div id="gasBlock">
-      <label>Газ</label>
-      <select id="gas">
-        <option>Метан (CH4)</option>
-        <option>Сероводород (H2S)</option>
-        <option>Оксид углерода (CO)</option>
-        <option>Кислород (O2)</option>
-        <option>Пропан (C3H8)</option>
-        <option>Азот (N2)</option>
-        <option>Воздух</option>
-        <option>Аргон (Ar)</option>
-        <option>Углекислота (CO2)</option>
-        <option>Гелий (He)</option>
-        <option>Водород (H2)</option>
-      </select>
-      <label>Концентрация, % об. д.</label>
-      <input id="conc" inputmode="decimal" placeholder="например 97.56">
-    </div>
-    <button onclick="add()">Внести</button>
-  </div>
-
-  <div class="card">
-    <h2>Ведомость (<span id="cnt">0</span>)</h2>
-    <div id="list"></div>
-    <button class="gray" onclick="downloadCSV()">Скачать CSV для Excel</button>
-    <button class="gray" onclick="copyAll()">Скопировать журнал</button>
-    <button class="gray" onclick="clearAll()">Очистить всё</button>
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <h3 id="mTitle">Ящичек</h3>
+  <label>Название / что лежит</label><input id="fName">
+  <label>Категория</label><select id="fCat"></select>
+  <label>Количество</label><input id="fQty" type="number" min="0">
+  <label>Заметка</label><textarea id="fNote"></textarea>
+  <div class="modal-actions">
+    <button class="btn-primary" onclick="saveCell()">Сохранить</button>
+    <button class="btn-sec" onclick="clearCell()">Очистить ящик</button>
+    <button class="btn-sec" onclick="closeModal()">Закрыть</button>
   </div>
 </div>
 
 <script>
-const KEY = 'balloon_rev';
-let items = JSON.parse(localStorage.getItem(KEY) || '[]');
-
-function save() { localStorage.setItem(KEY, JSON.stringify(items)); }
-
-function condChanged() {
-  document.getElementById('gasBlock').style.display =
-    document.getElementById('cond').value === 'full' ? 'block' : 'none';
+const CATS = {
+  'Резисторы':'#e57373','Конденсаторы':'#64b5f6','Диоды':'#81c784','Транзисторы':'#ba68c8',
+  'Модули':'#ffb74d','Разъёмы':'#4dd0e1','Провода':'#a1887f','Крепёж':'#90a4ae','Прочее':'#f06292'
+};
+const SECTIONS = [
+  {id:'A', title:'Органайзер DEKO A (верхний)', type:'deko', cols:8, rows:9},
+  {id:'B', title:'Органайзер DEKO B (нижний)',  type:'deko', cols:8, rows:9},
+  {id:'C', title:'Мини-шкафчик C — резисторы (левый, верх)', type:'mini', cols:2, rows:4},
+  {id:'D', title:'Мини-шкафчик D — резисторы (левый, низ)',  type:'mini', cols:2, rows:4},
+  {id:'E', title:'Мини-шкафчик E — резисторы (центр)',       type:'mini', cols:2, rows:4},
+  {id:'F', title:'Мини-шкафчик F — резерв (справа)',         type:'mini', cols:2, rows:4},
+  {id:'BAT', title:'Держатель батареек', type:'battery', cols:2, rows:1,
+   labels:['AAA','AA']}
+];
+const DEFAULTS = {
+  'C-0101':{n:'10K / 1K',c:'Резисторы'}, 'C-0102':{n:'1K',c:'Резисторы'},
+  'C-0201':{n:'680 / 100K',c:'Резисторы'},'C-0202':{n:'220',c:'Резисторы'},
+  'C-0301':{n:'510 / 51K',c:'Резисторы'}, 'C-0302':{n:'100',c:'Резисторы'},
+  'C-0401':{n:'470 / 2.2K',c:'Резисторы'},'C-0402':{n:'330',c:'Резисторы'},
+  'D-0101':{n:'470K / 47K',c:'Резисторы'},'D-0102':{n:'270',c:'Резисторы'},
+  'D-0201':{n:'1M / 150',c:'Резисторы'},  'D-0202':{n:'4.7K',c:'Резисторы'},
+  'D-0301':{n:'2K / 10',c:'Резисторы'},   'D-0302':{n:'220',c:'Резисторы'},
+  'D-0401':{n:'22 / 69K',c:'Резисторы'},  'D-0402':{n:'47',c:'Резисторы'},
+  'E-0101':{n:'200 / 10K',c:'Резисторы'}, 'E-0102':{n:'3.3K',c:'Резисторы'},
+  'E-0201':{n:'9K / 300K',c:'Резисторы'}, 'E-0202':{n:'695K',c:'Резисторы'}
+};
+const KEY='cartoteka_v1';
+let state=JSON.parse(localStorage.getItem(KEY)||'null');
+if(!state){ state={titles:{},cells:{}};
+  for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
+  save();
 }
+function save(){ localStorage.setItem(KEY,JSON.stringify(state)); }
 
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function condName(c) {
-  return c==='full' ? 'полный' : c==='empty' ? 'пустой' : c==='gaslab' ? 'в Газ-Лабе' : c==='work' ? 'в работе' : 'не годен';
+function cellCode(sec,r,c){
+  if(sec.type==='deko') return sec.id+'-'+String(r*sec.cols+c).padStart(2,'0');
+  if(sec.type==='mini') return sec.id+'-0'+r+'0'+c;
+  return sec.labels[c-1];
 }
-function condTag(c) {
-  const cls = c==='full' ? 't-full' : c==='empty' ? 't-empty' : c==='gaslab' ? 't-gaslab' : c==='work' ? 't-work' : 't-bad';
-  return '<span class="tag ' + cls + '">' + condName(c) + '</span>';
+function render(){
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  const app=document.getElementById('app'); app.innerHTML='';
+  for(const sec of SECTIONS){
+    const title=(state.titles&&state.titles[sec.id])||sec.title;
+    const p=document.createElement('div'); p.className='panel';
+    p.innerHTML='<div class="panel-head"><div class="panel-title">'+title+
+      '</div><button class="rename-btn" onclick="rename(\''+sec.id+'\')">✏ переименовать</button></div>';
+    const g=document.createElement('div'); g.className='grid '+(sec.cols===8?'g8':'g2');
+    for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
+      const code=cellCode(sec,r,c);
+      const d=state.cells[code];
+      const name=d?(d.n||''):'';
+      const match=!q||((name+' '+(d&&d.note||'')+' '+(d&&d.c||'')+' '+code).toLowerCase().includes(q));
+      const el=document.createElement('div');
+      el.className='cell'+(name?' filled':'')+((q&&!match)?' dim':'');
+      el.innerHTML='<div class="code">'+code+'</div><div class="row">'+
+        (name?'<span class="dot" style="background:'+(CATS[d.c]||'#f06292')+'"></span>':'')+
+        '<span class="name">'+(name||'')+'</span></div>';
+      el.onclick=()=>{ el.classList.add('pop'); setTimeout(()=>openModal(sec,code),260); };
+      g.appendChild(el);
+    }
+    p.appendChild(g); app.appendChild(p);
+  }
 }
-
-function render() {
-  document.getElementById('stAll').textContent = items.length;
-  document.getElementById('stFull').textContent = items.filter(i => i.cond==='full').length;
-  document.getElementById('stEmpty').textContent = items.filter(i => i.cond==='empty').length;
-  document.getElementById('stBad').textContent = items.filter(i => i.cond==='bad').length;
-  document.getElementById('stGaslab').textContent = items.filter(i => i.cond==='gaslab').length;
-  document.getElementById('stWork').textContent = items.filter(i => i.cond==='work').length;
-  document.getElementById('stAl').textContent = items.filter(i => i.mat==='Алюминий').length;
-  document.getElementById('stSt').textContent = items.filter(i => i.mat==='Металл').length;
-  document.getElementById('cnt').textContent = items.length;
-  const list = document.getElementById('list');
-  list.innerHTML = items.map((it, idx) => {
-    const gas = it.cond==='full' ? ' · ' + esc(it.gas) + (it.conc ? ' ' + esc(it.conc) + '%' : '') : '';
-    return '<div class="entry"><div class="info"><b>№ ' + esc(it.num) + '</b>' + condTag(it.cond) +
-      '<span class="tag t-al">' + esc(it.mat) + '</span><br>' +
-      (it.pass ? 'паспорт ' + esc(it.pass) : 'паспорт —') + gas +
-      '</div><button class="del" onclick="del(' + idx + ')">✕</button></div>';
-  }).join('');
+function openModal(sec,code){
+  current={sec,code};
+  const d=state.cells[code]||{};
+  document.getElementById('mTitle').textContent=code+' — '+((state.titles&&state.titles[sec.id])||sec.title);
+  document.getElementById('fName').value=d.n||'';
+  document.getElementById('fCat').value=d.c||'Прочее';
+  document.getElementById('fQty').value=d.qty||'';
+  document.getElementById('fNote').value=d.note||'';
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('modal').classList.add('show');
 }
-
-function show(text, cls) {
-  const m = document.getElementById('msg');
-  m.innerHTML = '<div class="msg ' + cls + '">' + text + '</div>';
-  setTimeout(() => { m.innerHTML = ''; }, 5000);
+function closeModal(){
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('modal').classList.remove('show');
 }
-
-function add() {
-  const num = document.getElementById('num').value.trim();
-  if (!num) { show('Введите номер баллона', 'err'); return; }
-  if (items.some(i => i.num === num)) { show('Баллон № ' + esc(num) + ' уже записан', 'err'); return; }
-  const cond = document.getElementById('cond').value;
-  const it = {
-    num: num,
-    pass: document.getElementById('pass').value.trim(),
-    mat: document.getElementById('mat').value,
-    cond: cond,
-    gas: cond==='full' ? document.getElementById('gas').value : '',
-    conc: cond==='full' ? document.getElementById('conc').value.trim() : '',
-    time: new Date().toLocaleString('ru-RU')
-  };
-  items.push(it);
-  save(); render();
-  document.getElementById('num').value = '';
-  document.getElementById('pass').value = '';
-  document.getElementById('conc').value = '';
-  document.getElementById('num').focus();
-  show('Записан баллон № ' + esc(num), 'ok');
+function saveCell(){
+  const n=document.getElementById('fName').value.trim();
+  if(n) state.cells[current.code]={n:n,c:document.getElementById('fCat').value,
+    qty:document.getElementById('fQty').value,note:document.getElementById('fNote').value.trim()};
+  else delete state.cells[current.code];
+  save(); render(); closeModal();
 }
-
-function del(idx) { items.splice(idx, 1); save(); render(); }
-
-function csv() {
-  const rows = [['№ баллона','№ паспорта','Материал','Состояние','Газ','Концентрация %','Время']];
-  items.forEach(i => rows.push([i.num, i.pass, i.mat, condName(i.cond), i.gas, i.conc, i.time]));
-  return '\uFEFF' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(';')).join('\n');
+function clearCell(){ delete state.cells[current.code]; save(); render(); closeModal(); }
+function rename(id){
+  const sec=SECTIONS.find(s=>s.id===id);
+  const t=prompt('Новое название секции:',(state.titles&&state.titles[id])||sec.title);
+  if(t&&t.trim()){ if(!state.titles)state.titles={}; state.titles[id]=t.trim(); save(); render(); }
 }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+document.getElementById('search').addEventListener('input',render);
 
-function downloadCSV() {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv()], {type: 'text/csv'}));
-  a.download = 'revizia_ballonov.csv';
-  a.click();
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='cartoteka.json'; a.click();
 }
-
-function copyAll() {
-  navigator.clipboard.writeText(csv()).then(
-    () => alert('Скопировано. Вставьте в Excel через Ctrl+V — колонки разойдутся сами.'),
-    () => alert('Не удалось скопировать. Используйте кнопку "Скачать CSV".')
-  );
+function importJSON(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+      const s=JSON.parse(rd.result);
+      if(s&&s.cells){ state=s; if(!state.titles)state.titles={}; save(); render();
+        alert('Импортировано: '+Object.keys(state.cells).length+' записей'); }
+    }catch(e){ alert('Не удалось прочитать файл: '+e); } };
+  rd.readAsText(f); ev.target.value='';
 }
-
-function clearAll() {
-  if (confirm('Удалить все записи? Отменить будет нельзя.')) { items = []; save(); render(); }
+function exportCSV(){
+  const rows=[['Ящик','Секция','Название','Категория','Кол-во','Заметка']];
+  for(const sec of SECTIONS){ const title=(state.titles&&state.titles[sec.id])||sec.title;
+    for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
+      const code=cellCode(sec,r,c), d=state.cells[code];
+      if(d) rows.push([code,title,d.n,d.c||'',d.qty||'',d.note||'']);
+    } }
+  const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='cartoteka.csv'; a.click();
 }
+function clearAll(){ if(confirm('Удалить все записи? Восстановить будет нельзя.')){
+  state={titles:{},cells:{}}; for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
+  save(); render(); } }
 
-render(); condChanged();
+// селект категорий
+const sel=document.getElementById('fCat');
+for(const c in CATS){ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); }
+render();
 </script>
 </body>
 </html>

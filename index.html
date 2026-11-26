@@ -24,6 +24,7 @@
   .search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;
           background:var(--cell);color:var(--text);width:min(320px,90vw);font-size:14px}
   .panel{background:var(--panel);border-radius:14px;padding:16px;margin:0 auto 22px;max-width:940px}
+  .panel.wide{max-width:1180px}
   .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .panel-title{color:var(--accent);font-weight:700;font-size:17px}
   .rename-btn{background:none;border:1px dashed var(--border);color:var(--muted);
@@ -92,8 +93,8 @@ const CATS = {
   'Модули':'#ffb74d','Разъёмы':'#4dd0e1','Провода':'#a1887f','Крепёж':'#90a4ae','Прочее':'#f06292'
 };
 const SECTIONS = [
-  {id:'A', title:'Органайзер DEKO A (верхний)', type:'deko', cols:8, rows:9},
-  {id:'B', title:'Органайзер DEKO B (нижний)',  type:'deko', cols:8, rows:9},
+  {id:'A', title:'Органайзер DEKO A (верхний)', type:'deko', cols:8, rows:9, wide:true},
+  {id:'B', title:'Органайзер DEKO B (нижний)',  type:'deko', cols:8, rows:9, wide:true},
   {id:'C', title:'Мини-шкафчик C — резисторы (левый, верх)', type:'mini', cols:2, rows:4},
   {id:'D', title:'Мини-шкафчик D — резисторы (левый, низ)',  type:'mini', cols:2, rows:4},
   {id:'E', title:'Мини-шкафчик E — резисторы (центр)',       type:'mini', cols:2, rows:4},
@@ -131,7 +132,7 @@ function render(){
   const app=document.getElementById('app'); app.innerHTML='';
   for(const sec of SECTIONS){
     const title=(state.titles&&state.titles[sec.id])||sec.title;
-    const p=document.createElement('div'); p.className='panel';
+    const p=document.createElement('div'); p.className='panel'+(sec.wide?' wide':'');
     p.innerHTML='<div class="panel-head"><div class="panel-title">'+title+
       '</div><button class="rename-btn" onclick="rename(\''+sec.id+'\')">✏ переименовать</button></div>';
     const g=document.createElement('div'); g.className='grid '+(sec.cols===8?'g8':'g2');
@@ -142,6 +143,7 @@ function render(){
       const match=!q||((name+' '+(d&&d.note||'')+' '+(d&&d.c||'')+' '+code).toLowerCase().includes(q));
       const el=document.createElement('div');
       el.className='cell'+(name?' filled':'')+((q&&!match)?' dim':'');
+      el.title=name;
       el.innerHTML='<div class="code">'+code+'</div><div class="row">'+
         (name?'<span class="dot" style="background:'+(CATS[d.c]||'#f06292')+'"></span>':'')+
         '<span class="name">'+(name||'')+'</span></div>';

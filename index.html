@@ -24,7 +24,7 @@
   .search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;
           background:var(--cell);color:var(--text);width:min(320px,90vw);font-size:14px}
   .panel{background:var(--panel);border-radius:14px;padding:16px;margin:0 auto 22px;max-width:940px}
-  .panel.wide{max-width:1180px}
+  .panel-wide{max-width:1180px}
   .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .panel-title{color:var(--accent);font-weight:700;font-size:17px}
   .rename-btn{background:none;border:1px dashed var(--border);color:var(--muted);
@@ -39,10 +39,9 @@
   .cell.filled{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
   .cell.dim{opacity:.25}
   .cell .code{font-size:10px;color:var(--muted);letter-spacing:.5px}
-  .cell .row{display:flex;align-items:center;gap:6px;margin-top:4px;min-width:0}
+  .cell .row{display:flex;align-items:center;gap:6px;margin-top:4px}
   .dot{width:8px;height:8px;border-radius:50%;flex:none}
-  .cell .name{font-size:13px;line-height:1.25;min-width:0;flex:1;
-        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cell .name{font-size:13px;line-height:1.25;word-break:break-word}
   .cell.pop{animation:pop .35s ease}
   @keyframes pop{0%{transform:scale(1)}45%{transform:translateY(-7px) scale(1.09)}100%{transform:scale(1)}}
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;z-index:10}
@@ -118,14 +117,25 @@ const DEFAULTS = {
 };
 const KEY='cartoteka_v1';
 let state=JSON.parse(localStorage.getItem(KEY)||'null');
-if(!state){ state={titles:{},cells:{}};
+if(!state){ state={v:2,titles:{},cells:{}};
   for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
   save();
+}
+// разовая миграция: старые коды A/B-09..A/B-80 -> A/B-01..A/B-72
+if(!state.v || state.v<2){
+  const map={};
+  for(const k in state.cells){
+    const m=k.match(/^([AB])-(\d{2})$/);
+    if(m){ const n=parseInt(m[2],10); if(n>=9&&n<=80) map[k]=m[1]+'-'+String(n-8).padStart(2,'0'); }
+  }
+  const nc={};
+  for(const k in state.cells) nc[map[k]||k]=state.cells[k];
+  state.cells=nc; state.v=2; save();
 }
 function save(){ localStorage.setItem(KEY,JSON.stringify(state)); }
 
 function cellCode(sec,r,c){
-  if(sec.type==='deko') return sec.id+'-'+String(r*sec.cols+c).padStart(2,'0');
+  if(sec.type==='deko') return sec.id+'-'+String((r-1)*sec.cols+c).padStart(2,'0');
   if(sec.type==='mini') return sec.id+'-0'+r+'0'+c;
   return sec.labels[c-1];
 }
@@ -135,7 +145,7 @@ function render(){
   for(const sec of SECTIONS){
     const title=(state.titles&&state.titles[sec.id])||sec.title;
     const p=document.createElement('div');
-    p.className='panel'+(sec.type==='deko'?' wide':'');
+    p.className='panel'+(sec.type==='deko'?' panel-wide':'');
     p.innerHTML='<div class="panel-head"><div class="panel-title">'+title+
       '</div><button class="rename-btn" onclick="rename(\''+sec.id+'\')">✏ переименовать</button></div>';
     const g=document.createElement('div');
@@ -147,7 +157,7 @@ function render(){
       const match=!q||((name+' '+(d&&d.note||'')+' '+(d&&d.c||'')+' '+code).toLowerCase().includes(q));
       const el=document.createElement('div');
       el.className='cell'+(name?' filled':'')+((q&&!match)?' dim':'');
-      if(name) el.title=name+((d&&d.note)?' — '+d.note:'');
+      if(name) el.title=name;
       el.innerHTML='<div class="code">'+code+'</div><div class="row">'+
         (name?'<span class="dot" style="background:'+(CATS[d.c]||'#f06292')+'"></span>':'')+
         '<span class="name">'+(name||'')+'</span></div>';
@@ -198,7 +208,18 @@ function importJSON(ev){
   const rd=new FileReader();
   rd.onload=()=>{ try{
       const s=JSON.parse(rd.result);
-      if(s&&s.cells){ state=s; if(!state.titles)state.titles={}; save(); render();
+      if(s&&s.cells){ state=s; if(!state.titles)state.titles={};
+        if(!state.v||state.v<2){ // миграция и для импортированных старых файлов
+          const map={};
+          for(const k in state.cells){
+            const m=k.match(/^([AB])-(\d{2})$/);
+            if(m){ const n=parseInt(m[2],10); if(n>=9&&n<=80) map[k]=m[1]+'-'+String(n-8).padStart(2,'0'); }
+          }
+          const nc={};
+          for(const k in state.cells) nc[map[k]||k]=state.cells[k];
+          state.cells=nc;
+        }
+        state.v=2; save(); render();
         alert('Импортировано: '+Object.keys(state.cells).length+' записей'); }
     }catch(e){ alert('Не удалось прочитать файл: '+e); } };
   rd.readAsText(f); ev.target.value='';
@@ -215,7 +236,7 @@ function exportCSV(){
   a.href=URL.createObjectURL(blob); a.download='cartoteka.csv'; a.click();
 }
 function clearAll(){ if(confirm('Удалить все записи? Восстановить будет нельзя.')){
-  state={titles:{},cells:{}}; for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
+  state={v:2,titles:{},cells:{}}; for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
   save(); render(); } }
 
 // селект категорий

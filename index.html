@@ -14,18 +14,15 @@
        background:var(--bg);color:var(--text);margin:0;padding:16px}
   h1{text-align:center;font-size:22px;margin:8px 0 4px}
   .subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
-  .controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+  .controls{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:10px}
   button{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;
          font-size:13px;transition:transform .15s,opacity .15s}
   button:hover{opacity:.9;transform:translateY(-1px)}
   .btn-primary{background:var(--accent);color:#1a1a1a}
   .btn-sec{background:#2a303c;color:var(--text);border:1px solid var(--border)}
   .btn-danger{background:#5a2a2a;color:#ffcccc}
-  #gearBtn{padding:8px 13px;font-size:15px}
-  input[type=file]{display:none}
   .search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;
           background:var(--cell);color:var(--text);width:min(320px,90vw);font-size:14px}
-  #ghStatus{min-height:18px;text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px}
   .panel{background:var(--panel);border-radius:14px;padding:16px;margin:0 auto 22px;max-width:940px}
   .panel-wide{max-width:1180px}
   .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -38,7 +35,7 @@
   .g2{grid-template-columns:repeat(2,1fr)}
   .cell{background:var(--cell);border:1px solid var(--border);border-radius:10px;
         padding:8px;cursor:pointer;min-height:58px;transition:border-color .2s,box-shadow .2s}
-  .cell:hover,.cell.filled:hover,.cell:hover.dim{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,152,0,.55),0 4px 14px rgba(255,152,0,.25);transform:translateY(-2px)}
+  .cell:hover{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,152,0,.55),0 4px 14px rgba(255,152,0,.25);transform:translateY(-2px)}
   .cell.filled{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok)}
   .cell.dim{opacity:.25}
   .cell .code{font-size:10px;color:var(--muted);letter-spacing:.5px}
@@ -51,8 +48,8 @@
   .overlay.show{opacity:1;pointer-events:auto}
   .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);opacity:0;
          pointer-events:none;background:var(--panel);border:1px solid var(--border);border-radius:14px;
-         padding:20px;width:min(460px,92vw);z-index:11;transition:transform .3s cubic-bezier(.2,1.4,.4,1),opacity .25s;
-         box-shadow:0 18px 50px rgba(0,0,0,.5);max-height:90vh;overflow:auto}
+         padding:20px;width:min(440px,92vw);z-index:11;transition:transform .3s cubic-bezier(.2,1.4,.4,1),opacity .25s;
+         box-shadow:0 18px 50px rgba(0,0,0,.5);max-height:86vh;overflow:auto}
   .modal.show{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
   .modal h3{margin:0 0 12px;font-size:16px;color:var(--accent)}
   .modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
@@ -60,15 +57,18 @@
         border-radius:8px;background:var(--cell);color:var(--text);font-size:14px;font-family:inherit}
   .modal textarea{resize:vertical;min-height:52px}
   .modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
-  .msg{text-align:center;color:var(--muted);font-size:12px;margin-top:6px}
-  .aInfo{background:#2a303c;border:1px solid var(--border);border-radius:8px;
-         padding:8px 10px;font-size:12px;margin-top:10px;color:var(--muted)}
-  .aInfo.warn{color:#ffb3b3;border-color:#5a2a2a}
+  .msg{text-align:center;color:var(--muted);font-size:12px;margin-top:6px;min-height:16px}
+  .suggest{margin-top:10px;font-size:13px;line-height:1.5}
+  .suggest .line{color:var(--muted)}
+  .suggest .line b{color:var(--text)}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .pill{background:#2a303c;border:1px solid var(--border);border-radius:20px;padding:4px 10px;
+        font-size:12px;cursor:pointer;color:var(--text)}
+  .pill.sel{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .pill:hover{border-color:var(--accent)}
+  .warn{color:#ffcc80;font-size:12px;margin-top:6px}
   .hr{border:none;border-top:1px solid var(--border);margin:16px 0 8px}
-  .danger-row{display:flex;gap:8px}
-  .danger-row input{flex:1}
-  .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-top:10px}
-  .check input{width:auto}
+  input[type=file]{display:none !important}
 </style>
 </head>
 <body>
@@ -76,19 +76,19 @@
 <div class="subtitle">Клик по ящичку — записать содержимое. Данные: браузер + синхронизация с GitHub.</div>
 <div class="controls">
   <input id="search" class="search" placeholder="🔍 Поиск: резистор, 10K, модуль…">
-  <button class="btn-primary" onclick="openAdd()">➕ Добавить деталь</button>
-  <button class="btn-primary" onclick="ghPush(false)">⬆️ На GitHub</button>
-  <button class="btn-sec" onclick="ghPull()">⬇️ С GitHub</button>
-  <button class="btn-sec" onclick="exportJSON()">⬇️ Файл JSON</button>
+  <button class="btn-primary" onclick="openSmart()">➕ Добавить деталь</button>
+  <button class="btn-sec" onclick="pushToHub(false)">⬆️ На GitHub</button>
+  <button class="btn-sec" onclick="pullFromHub()">⬇️ С GitHub</button>
+  <button class="btn-sec" onclick="exportJSON()">⬇️ Экспорт JSON</button>
   <button class="btn-sec" onclick="document.getElementById('importFile').click()">⬆️ Импорт JSON</button>
-  <button class="btn-sec" id="gearBtn" title="Настройки" onclick="openSettings()">⚙</button>
-  <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+  <button class="btn-sec" onclick="openSettings()" title="Настройки">⚙</button>
+  <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none">
 </div>
-<div id="ghStatus"></div>
+<div id="status" class="msg"></div>
 <div id="app"></div>
 
-<div class="overlay" id="overlay" onclick="closeAll()"></div>
-
+<!-- ====== модал ящика ====== -->
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
 <div class="modal" id="modal">
   <h3 id="mTitle">Ящичек</h3>
   <label>Название / что лежит</label><input id="fName">
@@ -98,46 +98,41 @@
   <div class="modal-actions">
     <button class="btn-primary" onclick="saveCell()">Сохранить</button>
     <button class="btn-sec" onclick="clearCell()">Очистить ящик</button>
-    <button class="btn-sec" onclick="closeAll()">Закрыть</button>
+    <button class="btn-sec" onclick="closeModal()">Закрыть</button>
   </div>
 </div>
 
-<div class="modal" id="modalAdd">
+<!-- ====== модал добавления ====== -->
+<div class="overlay" id="ov2" onclick="closeSmart()"></div>
+<div class="modal" id="smart">
   <h3>➕ Добавить деталь</h3>
-  <label>Название / маркировка</label>
-  <input id="aName" placeholder="например: 104 керам или IRLZ44N" oninput="suggest()">
-  <label>Категория</label>
-  <select id="aCat" onchange="aCatTouched=true"></select>
-  <label>Ящик (код, например A-45)</label>
-  <input id="aCell" list="cellList" oninput="aCellTouched=true;showCellInfo()" placeholder="A-41">
-  <datalist id="cellList"></datalist>
-  <div class="aInfo" id="aInfo" style="display:none"></div>
-  <label>Количество</label><input id="aQty" type="number" min="0">
-  <label>Заметка</label><textarea id="aNote"></textarea>
+  <label>Название (что принесли)</label>
+  <input id="sName" placeholder="например: IRF2804 или 470 µF 16V" oninput="suggest()">
+  <label>Количество</label><input id="sQty" type="number" min="1" value="1">
+  <label>Заметка (необязательно)</label><textarea id="sNote"></textarea>
+  <div id="sug" class="suggest"></div>
   <div class="modal-actions">
-    <button class="btn-primary" onclick="saveAdd(false)">Сохранить</button>
-    <button class="btn-sec" id="aMergeBtn" onclick="saveAdd(true)" style="display:none">Дописать к ящику</button>
-    <button class="btn-sec" onclick="closeAll()">Закрыть</button>
+    <button class="btn-primary" onclick="smartSave()">Записать</button>
+    <button class="btn-sec" onclick="closeSmart()">Закрыть</button>
   </div>
 </div>
 
-<div class="modal" id="modalSet">
+<!-- ====== модал настроек ====== -->
+<div class="overlay" id="ov3" onclick="closeSettings()"></div>
+<div class="modal" id="settings">
   <h3>⚙ Настройки</h3>
-  <label>GitHub: пользователь</label><input id="sUser" placeholder="username">
-  <label>Репозиторий</label><input id="sRepo" placeholder="cartoteka">
-  <label>Токен (fine-grained, право Contents: Read and write)</label><input id="sToken" type="password" placeholder="github_pat_…">
-  <div class="check"><input type="checkbox" id="sAuto"> Автосохранение на GitHub при каждом изменении</div>
-  <div class="msg" id="setMsg"></div>
+  <label>GitHub: имя пользователя</label><input id="gUser" placeholder="ivanov">
+  <label>GitHub: репозиторий (приватный)</label><input id="gRepo" placeholder="cartoteka">
+  <label>Имя файла в репозитории</label><input id="gFile" placeholder="cartoteka.json">
+  <label>Personal access token (Contents: Read and write)</label>
+  <input id="gToken" type="password" placeholder="github_pat_...">
+  <label><input type="checkbox" id="gAuto" style="width:auto;margin-right:6px"> Автосохранение на GitHub (20 сек после изменений)</label>
   <div class="modal-actions">
     <button class="btn-primary" onclick="saveSettings()">Сохранить</button>
-    <button class="btn-sec" onclick="closeAll()">Закрыть</button>
+    <button class="btn-sec" onclick="closeSettings()">Закрыть</button>
   </div>
   <hr class="hr">
-  <label style="color:#ff9c9c">Опасная зона: введите слово УДАЛИТЬ, чтобы очистить всю картотеку</label>
-  <div class="danger-row">
-    <input id="sConfirm" placeholder="УДАЛИТЬ">
-    <button class="btn-danger" onclick="dangerClear()">🗑</button>
-  </div>
+  <button class="btn-danger" onclick="clearAll()">🗑 Очистить всё (осторожно!)</button>
 </div>
 
 <script>
@@ -152,7 +147,8 @@ const SECTIONS = [
   {id:'D', title:'Мини-шкафчик D — резисторы (левый, низ)',  type:'mini', cols:3, rows:4},
   {id:'E', title:'Мини-шкафчик E — резисторы (центр)',       type:'mini', cols:3, rows:4},
   {id:'F', title:'Мини-шкафчик F — резерв (справа)',         type:'mini', cols:3, rows:4},
-  {id:'BAT', title:'Держатель батареек', type:'battery', cols:2, rows:1, labels:['AAA','AA']}
+  {id:'BAT', title:'Держатель батареек', type:'battery', cols:2, rows:1,
+   labels:['AAA','AA']}
 ];
 const DEFAULTS = {
   'C-0101':{n:'10K / 1K',c:'Резисторы'}, 'C-0102':{n:'1K',c:'Резисторы'},
@@ -166,83 +162,89 @@ const DEFAULTS = {
   'E-0101':{n:'200 / 10K',c:'Резисторы'}, 'E-0102':{n:'3.3K',c:'Резисторы'},
   'E-0201':{n:'9K / 300K',c:'Резисторы'}, 'E-0202':{n:'695K',c:'Резисторы'}
 };
-// Правила умной классификации: порядок важен — сверху самые конкретные.
-// Новое правило = дописать строку {cell:'A-XX', cat:'…', re:/…/i}.
-const CLASS_RULES = [
-  // Конденсаторы
-  {cell:'A-29', cat:'Конденсаторы', re:/x2|mkp|cbb|пл[её]ноч/i},
-  {cell:'A-26', cat:'Конденсаторы', re:/электрол|тантал|\sмкф|\bмкф|µf|uf\b/i},
-  {cell:'A-27', cat:'Конденсаторы', re:/высоковоль|кв\b|kv\b|y5v|вв\b/i},
-  {cell:'A-28', cat:'Конденсаторы', re:/пф|pf\b|нф|nf\b|керам/i},
-  // Диоды и светодиоды
-  {cell:'A-04', cat:'Диоды', re:/светодиод\w*\s+smd|smd\s+светодиод|2835|3528|5050|5730/i},
-  {cell:'A-03', cat:'Диоды', re:/светодиод\w*.*1\s?w|1\s?w\s+led|мощн\w*\s+светодиод/i},
-  {cell:'A-01', cat:'Диоды', re:/светодиод\w*\s+rgb|rgb\s+светодиод/i},
-  {cell:'A-02', cat:'Диоды', re:/бел/i},
-  {cell:'A-05', cat:'Диоды', re:/светодиод/i},
-  {cell:'A-07', cat:'Диоды', re:/1n58|in58|ss3[46]|ss1[46]|sr3\d\d/i},
-  {cell:'A-16', cat:'Диоды', re:/mbr|шоттк/i},
-  {cell:'A-06', cat:'Диоды', re:/1n400[0-7]|выпрямител/i},
-  {cell:'A-06', cat:'Диоды', re:/\b1n\d{3,4}\b|диод/i},
-  // Транзисторы
-  {cell:'A-09', cat:'Транзисторы', re:/2n2907|\bpnp\b/i},
-  {cell:'A-11', cat:'Транзисторы', re:/irl\d|logic.?level|логич.*затвор/i},
-  {cell:'A-12', cat:'Транзисторы', re:/irf540/i},
-  {cell:'A-13', cat:'Транзисторы', re:/tip3[12]/i},
-  {cell:'A-14', cat:'Транзисторы', re:/irf3205|stp\d+|mosfet|мощ/i},
-  {cell:'A-21', cat:'Транзисторы', re:/ao4435|aod443|p.?mos/i},
-  {cell:'A-10', cat:'Транзисторы', re:/2n2222|9013|9014|npn/i},
-  {cell:'A-15', cat:'Транзисторы', re:/транзистор|кт972|kt972|2n390[46]|c1815|c945|bc\d{3}|aod\d+/i},
-  // Индуктивности и трансформаторы
-  {cell:'A-24', cat:'Прочее', re:/трансформатор|flyback|ee-?сердеч/i},
-  {cell:'A-25', cat:'Прочее', re:/дроссель|индуктив|мкгн|uh\b|µh|тороид/i},
-  // Микросхемы и прочая логика
-  {cell:'A-19', cat:'Прочее', re:/74hc59[57]|74hc164|сдвиг/i},
-  {cell:'A-20', cat:'Прочее', re:/\b555\b|таймер/i},
-  {cell:'A-17', cat:'Прочее', re:/78\d\d|lm317|стабилизат|стабилитрон|ldo|zener/i},
-  {cell:'A-18', cat:'Прочее', re:/lm\d{3}|74hc|74ls|cd40\d\d|24lc|93lc|93c\d\d|eeprom|оптопар|pc817|tl431|attiny|atmega|микросх|компарат|adc|da\s?adc/i},
-  {cell:'A-23', cat:'Прочее', re:/tda\d+|усилител/i},
-  // Пассивные «защитники»
-  {cell:'A-30', cat:'Прочее', re:/варистор|zov|jy47|mov\b/i},
-  {cell:'A-31', cat:'Прочее', re:/ntc|термистор|терморезист/i},
-  {cell:'A-08', cat:'Прочее', re:/термо?предохр|thermal.?cutoff|aupo/i},
-  // Модули и узлы
-  {cell:'A-34', cat:'Модули', re:/esp32|esp8266|wroom|s3/i},
-  {cell:'A-37', cat:'Прочее', re:/релейн\w* модул|songle|srd-|реле.*модул/i},
-  {cell:'A-33', cat:'Прочее', re:/реле|g6b/i},
-  {cell:'A-32', cat:'Прочее', re:/lm2596|xl6009|dc.?dc|понижающ|повышающ|buck|boost/i},
-  {cell:'A-38', cat:'Прочее', re:/вольтметр|амперметр/i},
-  {cell:'A-39', cat:'Прочее', re:/oled|ssd13|128x64/i},
-  {cell:'A-40', cat:'Прочее', re:/сегмент|05611|5611|индикатор/i},
-  {cell:'A-22', cat:'Прочее', re:/кварц|crystal|мгц|mhz/i},
-  // Коммутация
-  {cell:'A-35', cat:'Прочее', re:/kcd|рокер|выключател|тумблер|switch/i},
-  {cell:'A-36', cat:'Прочее', re:/кнопк|грибок/i},
-  // Резисторы — в мини-шкафчики C/D/E (по умолчанию первый свободный)
-  {cell:'', cat:'Резисторы', re:/резистор|\bом\b|ком\b|мком|k\b/i}
+const RES_CODES = ['C-0101','C-0102','C-0201','C-0202','C-0301','C-0302','C-0401','C-0402',
+  'D-0101','D-0102','D-0201','D-0202','D-0301','D-0302','D-0401','D-0402',
+  'E-0101','E-0102','E-0201','E-0202'];
+
+/* ================= СЛОВАРЬ КЛАССИФИКАЦИИ =================
+   Порядок важен: первое совпавшее правило побеждает.
+   Новая серия деталей = добавить одну строку сюда. */
+const RULES = [
+  // модули и дисплеи
+  {cell:'A-39', cat:'Прочее',        re:/oled|ssd1306|дисплей|display/i},
+  {cell:'A-40', cat:'Прочее',        re:/7-?сегм|семисегм|05611|индикатор/i},
+  {cell:'A-38', cat:'Прочее',        re:/вольтметр|амперметр/i},
+  {cell:'A-34', cat:'Модули',        re:/esp32|esp8266|nodemcu|stm32|arduino|нано|nano/i},
+  {cell:'A-37', cat:'Прочее',        re:/релейн|relay/i},
+  {cell:'A-33', cat:'Прочее',        re:/реле|g6b|omron|songle|srd-|srd\d/i},
+  {cell:'A-35', cat:'Прочее',        re:/рокер|kcd|выключат/i},
+  {cell:'A-36', cat:'Прочее',        re:/кнопк/i},
+  {cell:'A-22', cat:'Прочее',        re:/кварц|резонатор|мгц/i},
+  {cell:'A-17', cat:'Прочее',        re:/lm78|l78|ldo|стабилизатор|стабилитрон/i},
+  {cell:'A-19', cat:'Прочее',        re:/74hc|74ls|595|сдвигов/i},
+  {cell:'A-20', cat:'Прочее',        re:/ne555|\b555\b|таймер/i},
+  {cell:'A-18', cat:'Прочее',        re:/lm324|к155|k155|eeprom|24lc|93lc|fan7601|uc38|микросхем|оптопар/i},
+  {cell:'A-32', cat:'Прочее',        re:/dc-?dc|lm2596|xl6009|понижа|повыша|buck|boost/i},
+  {cell:'A-24', cat:'Прочее',        re:/трансформатор|дроссель/i},
+  {cell:'A-25', cat:'Прочее',        re:/индуктив|мкгн|\buh\b|µh/i},
+  {cell:'A-30', cat:'Прочее',        re:/варистор|zov|jy47/i},
+  {cell:'A-31', cat:'Прочее',        re:/ntc|термистор/i},
+  {cell:'A-08', cat:'Прочее',        re:/термопредохр|cutoff|auupo/i},
+  {cell:'A-23', cat:'Прочее',        re:/tda|усилител|lm386/i},
+  // транзисторы
+  {cell:'A-11', cat:'Транзисторы',   re:/\birl|logic[- ]?level/i},
+  {cell:'A-21', cat:'Транзисторы',   re:/ao44|\b4435\b/i},
+  {cell:'A-14', cat:'Транзисторы',   re:/\birf\d|\bstp\d|силов/i},
+  {cell:'A-13', cat:'Транзисторы',   re:/tip\d/i},
+  {cell:'A-09', cat:'Транзисторы',   re:/2n2907/i},
+  {cell:'A-10', cat:'Транзисторы',   re:/2n2222/i},
+  {cell:'A-15', cat:'Транзисторы',   re:/aod|npn|pnp|транзистор|кт\d|1815|945|390|mosfet/i},
+  // диоды
+  {cell:'A-07', cat:'Диоды',         re:/шоттк|mbr|1n58|ss\d/i},
+  {cell:'A-06', cat:'Диоды',         re:/1n\d|диод|выпрям/i},
+  {cell:'A-01', cat:'Диоды',         re:/rgb/i},
+  {cell:'A-05', cat:'Диоды',         re:/led|светодиод/i},
+  // конденсаторы
+  {cell:'A-29', cat:'Конденсаторы',  re:/x2|mkp|cbb|плён|плен/i},
+  {cell:'A-26', cat:'Конденсаторы',  re:/электролит|µf|мкф|\buf\b/i},
+  {cell:'A-28', cat:'Конденсаторы',  re:/керам|пф|\bpf\b|нф|\bnf\b|^\d{2,3}\b/i},
+  {cell:'A-27', cat:'Конденсаторы',  re:/mlcc|высоковольт/i},
 ];
-const KEY='cartoteka_v1', GHKEY='cartoteka_gh';
+/* а это — значения, которые обрабатываются особым образом */
+function classify(name){
+  const n = norm(name);
+  for(const r of RULES){ if(r.re.test(n)) return r; }
+  if(/резистор|\bом|ком\b|\bк\b|\bк[ом]|резист/i.test(n)){
+    const m = n.match(/(\d+[.,]?\d*)\s*(k|к|м|m|ом|r)?/i);
+    if(m){
+      const v = m[1].replace(',','.')+(m[2]?m[2].toLowerCase():'');
+      for(const code of RES_CODES){
+        const d = state.cells[code];
+        if(d && d.n && norm(d.n).includes(v)) return {cell:code, cat:'Резисторы'};
+      }
+    }
+    return {cell:null, cat:'Резисторы'};
+  }
+  return {cell:null, cat:'Прочее'};
+}
+
+const KEY='cartoteka_v1';
 let state=JSON.parse(localStorage.getItem(KEY)||'null');
 if(!state){ state={v:2,titles:{},cells:{}};
   for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
   save();
 }
-if(!state.v || state.v<2) state=migrate(state), save();
-
-function migrate(s){
+if(!state.v || state.v<2){
   const map={};
-  for(const k in s.cells){
+  for(const k in state.cells){
     const m=k.match(/^([AB])-(\d{2})$/);
     if(m){ const n=parseInt(m[2],10); if(n>=9&&n<=80) map[k]=m[1]+'-'+String(n-8).padStart(2,'0'); }
   }
   const nc={};
-  for(const k in s.cells) nc[map[k]||k]=s.cells[k];
-  s.cells=nc; s.v=2; if(!s.titles) s.titles={};
-  return s;
+  for(const k in state.cells) nc[map[k]||k]=state.cells[k];
+  state.cells=nc; state.v=2; save();
 }
-function save(){ localStorage.setItem(KEY,JSON.stringify(state)); }
-function ghCfg(){ try{ return JSON.parse(localStorage.getItem(GHKEY)||'{}'); }catch(e){ return {}; } }
-function ghAuto(){ const c=ghCfg(); if(c.token&&c.auto){ clearTimeout(ghAuto.t); ghAuto.t=setTimeout(()=>ghPush(true),2500); } }
+function save(){ localStorage.setItem(KEY,JSON.stringify(state)); scheduleAuto(); }
 
 function cellCode(sec,r,c){
   if(sec.type==='deko') return sec.id+'-'+String((r-1)*sec.cols+c).padStart(2,'0');
@@ -256,7 +258,7 @@ function render(){
     const title=(state.titles&&state.titles[sec.id])||sec.title;
     const p=document.createElement('div');
     p.className='panel'+(sec.type==='deko'?' panel-wide':'');
-    p.innerHTML='<div class="panel-head"><div class="panel-title">'+title+
+    p.innerHTML='<div class="panel-head"><div class="panel-title">'+esc(title)+
       '</div><button class="rename-btn" onclick="rename(\''+sec.id+'\')">✏ переименовать</button></div>';
     const g=document.createElement('div');
     g.className='grid '+(sec.cols===8?'g8':(sec.cols===3?'g3':'g2'));
@@ -270,14 +272,13 @@ function render(){
       if(name) el.title=name;
       el.innerHTML='<div class="code">'+code+'</div><div class="row">'+
         (name?'<span class="dot" style="background:'+(CATS[d.c]||'#f06292')+'"></span>':'')+
-        '<span class="name">'+(name||'')+'</span></div>';
+        '<span class="name">'+esc(name)+'</span></div>';
       el.onclick=()=>{ el.classList.add('pop'); setTimeout(()=>openModal(sec,code),260); };
       g.appendChild(el);
     }
     p.appendChild(g); app.appendChild(p);
   }
 }
-let current=null;
 function openModal(sec,code){
   current={sec,code};
   const d=state.cells[code]||{};
@@ -286,197 +287,212 @@ function openModal(sec,code){
   document.getElementById('fCat').value=d.c||'Прочее';
   document.getElementById('fQty').value=d.qty||'';
   document.getElementById('fNote').value=d.note||'';
-  showOverlay(); show('modal');
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('modal').classList.add('show');
 }
-function show(id){ document.getElementById(id).classList.add('show'); }
-function showOverlay(){ document.getElementById('overlay').classList.add('show'); }
-function closeAll(){
+function closeModal(){
   document.getElementById('overlay').classList.remove('show');
-  for(const id of ['modal','modalAdd','modalSet']) document.getElementById(id).classList.remove('show');
+  document.getElementById('modal').classList.remove('show');
 }
 function saveCell(){
   const n=document.getElementById('fName').value.trim();
   if(n) state.cells[current.code]={n:n,c:document.getElementById('fCat').value,
     qty:document.getElementById('fQty').value,note:document.getElementById('fNote').value.trim()};
   else delete state.cells[current.code];
-  save(); ghAuto(); render(); closeAll();
+  save(); render(); closeModal();
 }
-function clearCell(){ delete state.cells[current.code]; save(); ghAuto(); render(); closeAll(); }
+function clearCell(){ delete state.cells[current.code]; save(); render(); closeModal(); }
 function rename(id){
   const sec=SECTIONS.find(s=>s.id===id);
   const t=prompt('Новое название секции:',(state.titles&&state.titles[id])||sec.title);
-  if(t&&t.trim()){ if(!state.titles)state.titles={}; state.titles[id]=t.trim(); save(); ghAuto(); render(); }
+  if(t&&t.trim()){ if(!state.titles)state.titles={}; state.titles[id]=t.trim(); save(); render(); }
 }
 
-// ---------- Умное добавление ----------
-let aCatTouched=false, aCellTouched=false;
-function classify(name){
-  for(const r of CLASS_RULES) if(r.re.test(name)) return r;
-  return {cell:'',cat:'Прочее'};
-}
+/* ================= УМНОЕ ДОБАВЛЕНИЕ ================= */
+let chosen=null;
+function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function tokens(s){ return norm(s).split(/[^a-zа-яё0-9µ.]+/).filter(Boolean); }
 function firstFree(){
-  for(const sec of SECTIONS){ if(sec.type!=='deko') continue;
+  for(const sec of SECTIONS){
+    if(sec.type!=='deko') continue;
     for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
-      const code=cellCode(sec,r,c); if(!state.cells[code]) return code;
+      const code=cellCode(sec,r,c);
+      if(!state.cells[code]||!state.cells[code].n) return code;
     }
   }
-  return 'A-01';
+  return 'A-72';
 }
-function tokens(s){
-  return (s||'').toLowerCase().split(/[^a-zа-яё0-9.µ]+/i)
-    .filter(w=>w.length>=2||/^\d+$/.test(w));
+function openSmart(){
+  document.getElementById('sName').value='';
+  document.getElementById('sQty').value=1;
+  document.getElementById('sNote').value='';
+  document.getElementById('sug').innerHTML='<div class="line">Введите название — подскажу категорию и ящик.</div>';
+  chosen=null;
+  document.getElementById('ov2').classList.add('show');
+  document.getElementById('smart').classList.add('show');
+  document.getElementById('sName').focus();
 }
-function simScore(a,b){
-  const ta=new Set(tokens(a)), tb=new Set(tokens(b)); let s=0;
-  for(const t of ta) if(tb.has(t)) s++;
-  return s;
-}
-function bestMatch(name){
-  let best=null;
-  for(const code in state.cells){
-    const d=state.cells[code]; if(!d) continue;
-    const sc=simScore(name,(d.n||'')+' '+(d.note||''));
-    if(sc>0 && (!best||sc>best.sc)) best={code,sc,d};
-  }
-  return best;
-}
-function openAdd(){
-  aCatTouched=false; aCellTouched=false;
-  document.getElementById('aName').value='';
-  document.getElementById('aQty').value='';
-  document.getElementById('aNote').value='';
-  const list=document.getElementById('cellList'); list.innerHTML='';
-  for(const sec of SECTIONS){ if(sec.type!=='deko') continue;
-    for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
-      const code=cellCode(sec,r,c); const d=state.cells[code];
-      const o=document.createElement('option'); o.value=code;
-      o.label=d?d.n:'свободен'; list.appendChild(o);
-    }
-  }
-  showCellInfo();
-  showOverlay(); show('modalAdd');
-  document.getElementById('aName').focus();
+function closeSmart(){
+  document.getElementById('ov2').classList.remove('show');
+  document.getElementById('smart').classList.remove('show');
 }
 function suggest(){
-  const n=document.getElementById('aName').value.trim();
-  if(!n) return;
-  const cls=classify(n);
-  if(!aCatTouched) document.getElementById('aCat').value=cls.cat;
-  if(!aCellTouched) document.getElementById('aCell').value=cls.cell||firstFree();
-  showCellInfo();
-}
-function showCellInfo(){
-  const info=document.getElementById('aInfo'), btn=document.getElementById('aMergeBtn');
-  let cell=(document.getElementById('aCell').value||'').trim().toUpperCase().replace(/А/g,'A').replace(/[\s–—-]+/g,'-');
-  const d=state.cells[cell];
-  const n=document.getElementById('aName').value.trim();
-  if(!d){ info.style.display='none'; btn.style.display='none'; return; }
-  const sc=n?simScore(n,(d.n||'')+' '+(d.note||'')):0;
-  info.style.display='block';
-  info.className='aInfo'+(sc?'':' warn');
-  info.innerHTML='В ящике <b>'+cell+'</b> уже лежит: «'+(d.n||'')+'»'+
-    (d.qty?' ×'+d.qty:'')+(sc?' — похоже на ваше, можно дописать':' — ящик занят другой деталью');
-  btn.style.display = (d&&n) ? 'inline-block' : 'none';
-}
-function saveAdd(merge){
-  const n=document.getElementById('aName').value.trim();
-  if(!n){ alert('Введите название'); return; }
-  let cell=(document.getElementById('aCell').value||'').trim().toUpperCase().replace(/А/g,'A').replace(/[\s–—-]+/g,'-');
-  if(!/^[A-F]-\d{4}$/.test(cell) && !/^[AB]-\d{2}$/.test(cell) && !['AAA','AA'].includes(cell)){
-    alert('Неверный код ящика: '+cell); return;
+  const name=document.getElementById('sName').value;
+  const sug=document.getElementById('sug');
+  if(!norm(name)){ sug.innerHTML=''; chosen=null; return; }
+  const r=classify(name);
+  // поиск похожих среди уже лежащих
+  const tk=tokens(name); const cands=[];
+  for(const code in state.cells){
+    const d=state.cells[code]; if(!d||!d.n) continue;
+    const dt=tokens(d.n);
+    let score=tk.filter(t=>dt.includes(t)).length;
+    if(norm(d.n)===norm(name)) score+=2;
+    if(score) cands.push({code:code,score:score,name:d.n});
   }
-  const cat=document.getElementById('aCat').value;
-  const qty=parseInt(document.getElementById('aQty').value)||0;
-  const note=document.getElementById('aNote').value.trim();
-  if(merge){
-    const d=state.cells[cell]||{n:'',c:cat,qty:'',note:''};
-    const dq=parseInt(d.qty)||0;
-    state.cells[cell]={n:d.n||n,c:cat||d.c||'Прочее',qty:(dq+qty)||dq||'',
-      note:(d.note?d.note+'\n':'')+'+ '+n+(qty?' ×'+qty:'')+(note?' — '+note:'')};
-  }else{
-    if(state.cells[cell] && !confirm('Ящик '+cell+' уже занят («'+state.cells[cell].n+'»).\nЗаменить содержимое?')) return;
-    state.cells[cell]={n:n,c:cat,qty:qty||'',note:note};
+  cands.sort((a,b)=>b.score-a.score);
+  const same=cands.length?cands[0]:null;
+  let target, mode, extra='';
+  if(same && same.score>=2){
+    target=same.code; mode='appendSame';
+    extra='<div class="pills" id="candPills"><span class="pill sel" onclick="pick(\''+same.code+'\')">📍 '+same.code+' — '+esc(same.name)+'</span></div>';
+  } else if(r.cell){
+    target=r.cell; mode = (state.cells[target]&&state.cells[target].n) ? 'appendNote':'new';
+    extra='';
+  } else if(cands.length){
+    target=cands[0].code; mode='appendNote';
+  } else {
+    target=firstFree(); mode='new';
   }
-  save(); ghAuto(); render(); closeAll();
+  chosen={cell:target,cat:r.cat,mode:mode};
+  let html='<div class="line">Категория: <b>'+esc(r.cat)+'</b> · Ящик: <b>'+target+'</b>';
+  const cur=state.cells[target];
+  if(cur&&cur.n){
+    html+=' — там уже лежит: <b>'+esc(cur.n)+'</b>';
+    if(mode==='appendSame') html+='<br>Совпадение! Запишу в этот же ящик, количество сложится.';
+    else html+='<br>Запишу <b>'+esc(n)+'</b>'+' строкой в заметку этого ящика (или выберите другой ящик):';
+  } else html+=' — свободен, запишу сюда.';
+  html+='</div>';
+  // pills: похожие + свободные
+  let pills='';
+  for(const cd of cands.slice(0,3)) if(cd.code!==target)
+    pills+='<span class="pill" onclick="pick(\''+cd.code+'\')">'+cd.code+' — '+esc(cd.name)+'</span>';
+  if(!cur||!cur.n){
+    for(const cd of cands.slice(0,3))
+      pills+='<span class="pill" onclick="pick(\''+cd.code+'\')">'+cd.code+' — '+esc(cd.name)+'</span>';
+  }
+  if(pills) html+='<div class="pills">'+pills+'</div>';
+  sug.innerHTML=html;
 }
+function pick(code){
+  if(!chosen) return;
+  chosen.cell=code;
+  const cur=state.cells[code];
+  chosen.mode=(cur&&cur.n)?'appendNote':'new';
+  suggest(); // перерисует, но chosen.cell сохранится — перезапишем вручную
+  chosen.cell=code; chosen.mode=(cur&&cur.n)?'appendNote':'new';
+}
+function smartSave(){
+  const n=document.getElementById('sName').value.trim();
+  const q=parseInt(document.getElementById('sQty').value)||0;
+  const note=document.getElementById('sNote').value.trim();
+  if(!n){ alert('Введите название детали'); return; }
+  if(!chosen) suggest();
+  if(!chosen){ alert('Не удалось определить ящик'); return; }
+  const code=chosen.cell, d=state.cells[code]||{};
+  const stamp=new Date().toLocaleDateString('ru-RU');
+  if(!d.n){
+    state.cells[code]={n:n,c:chosen.cat,qty:q||'',note:note};
+  } else if(norm(d.n)===norm(n)){
+    state.cells[code].qty=((parseInt(d.qty)||0)+q)||'';
+    if(note) state.cells[code].note=((d.note||'')+'\n'+note).trim();
+  } else {
+    state.cells[code].note=((d.note||'')+'\n+ '+stamp+': '+n+' ×'+(q||1)+(note?', '+note:'')).trim();
+  }
+  save(); render(); closeSmart();
+  setStatus('✅ '+n+' → '+code,true);
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSmart(); closeSettings(); } });
+document.getElementById('search').addEventListener('input',render);
 
-// ---------- GitHub ----------
-function setStatus(t){
-  const el=document.getElementById('ghStatus'); el.textContent=t;
-  if(t) setTimeout(()=>{ if(el.textContent===t) el.textContent=''; },7000);
+/* ================= GITHUB СИНХРОНИЗАЦИЯ ================= */
+const GKEY='cartoteka_git_v1';
+function gh(){ try{ return JSON.parse(localStorage.getItem(GKEY)||'null'); }catch(e){ return null; } }
+function setStatus(msg,ok){
+  const el=document.getElementById('status');
+  el.textContent=msg||'';
+  el.style.color=ok===undefined?'var(--muted)':(ok?'var(--ok)':'#ff8a80');
 }
-function b64e(s){ return btoa(unescape(encodeURIComponent(s))); }
-function b64d(s){ return decodeURIComponent(escape(atob(s.replace(/\s/g,'')))); }
-async function ghPush(silent){
-  const c=ghCfg();
-  if(!c.user||!c.repo||!c.token){
-    if(!silent) openSettings('Для синхронизации заполните настройки GitHub');
-    else setStatus('Автосейв пропущен: нет настроек GitHub');
+let autoTimer=null;
+function scheduleAuto(){
+  const g=gh(); if(!g||!g.auto) return;
+  clearTimeout(autoTimer);
+  autoTimer=setTimeout(()=>pushToHub(true),20000);
+}
+function openSettings(){
+  const g=gh()||{};
+  document.getElementById('gUser').value=g.user||'';
+  document.getElementById('gRepo').value=g.repo||'';
+  document.getElementById('gFile').value=g.file||'cartoteka.json';
+  document.getElementById('gToken').value=g.token||'';
+  document.getElementById('gAuto').checked=!!g.auto;
+  document.getElementById('ov3').classList.add('show');
+  document.getElementById('settings').classList.add('show');
+}
+function closeSettings(){
+  document.getElementById('ov3').classList.remove('show');
+  document.getElementById('settings').classList.remove('show');
+}
+function saveSettings(){
+  const g={user:document.getElementById('gUser').value.trim(),
+           repo:document.getElementById('gRepo').value.trim(),
+           file:document.getElementById('gFile').value.trim()||'cartoteka.json',
+           token:document.getElementById('gToken').value.trim(),
+           auto:document.getElementById('gAuto').checked};
+  localStorage.setItem(GKEY,JSON.stringify(g));
+  closeSettings(); setStatus('Настройки сохранены',true);
+}
+function ghHeaders(g){
+  return {'Authorization':'Bearer '+g.token,'Accept':'application/vnd.github+json'};
+}
+async function pushToHub(silent){
+  const g=gh();
+  if(!g||!g.user||!g.repo||!g.token){
+    if(!silent){ openSettings(); setStatus('Заполните настройки GitHub',false); }
     return;
   }
   setStatus('⬆️ Сохраняю на GitHub…');
+  const url='https://api.github.com/repos/'+g.user+'/'+g.repo+'/contents/'+g.file;
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
+  const body={message:'Картотека: обновление '+new Date().toLocaleString('ru-RU'),content:content};
   try{
-    const url='https://api.github.com/repos/'+c.user+'/'+c.repo+'/contents/cartoteka.json';
-    const H={'Authorization':'Bearer '+c.token,'Accept':'application/vnd.github+json'};
-    let sha=null;
-    const r=await fetch(url,{headers:H});
-    if(r.ok){ sha=(await r.json()).sha; }
-    const body={message:'Обновление картотеки ('+new Date().toLocaleString('ru-RU')+')',
-      content:b64e(JSON.stringify(state,null,2))};
-    if(sha) body.sha=sha;
-    const r2=await fetch(url,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify(body)});
-    if(r2.ok) setStatus('✅ Сохранено на GitHub');
-    else{ const e=await r2.json().catch(()=>({})); setStatus('❌ Ошибка GitHub: '+(e.message||r2.status)); }
-  }catch(e){ setStatus('❌ Нет связи с GitHub'); }
+    const head=await fetch(url,{headers:ghHeaders(g)});
+    if(head.ok){ const j=await head.json(); if(j.sha) body.sha=j.sha; }
+    const res=await fetch(url,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},ghHeaders(g)),body:JSON.stringify(body)});
+    if(res.ok) setStatus('✅ Сохранено на GitHub ('+g.repo+'/'+g.file+')',true);
+    else{ const e=await res.json().catch(()=>({})); setStatus('Ошибка GitHub: '+(e.message||res.status),false); }
+  }catch(e){ setStatus('Ошибка сети: '+e.message,false); }
 }
-async function ghPull(){
-  const c=ghCfg();
-  if(!c.user||!c.repo||!c.token){ openSettings('Для загрузки заполните настройки GitHub'); return; }
+async function pullFromHub(){
+  const g=gh();
+  if(!g||!g.user||!g.repo||!g.token){ openSettings(); setStatus('Заполните настройки GitHub',false); return; }
   setStatus('⬇️ Загружаю с GitHub…');
+  const url='https://api.github.com/repos/'+g.user+'/'+g.repo+'/contents/'+g.file;
   try{
-    const url='https://api.github.com/repos/'+c.user+'/'+c.repo+'/contents/cartoteka.json';
-    const r=await fetch(url,{headers:{'Authorization':'Bearer '+c.token,'Accept':'application/vnd.github+json'}});
-    if(!r.ok){ setStatus('❌ Файл cartoteka.json не найден (или нет доступа), код '+r.status); return; }
-    const j=await r.json();
-    const s=JSON.parse(b64d(j.content));
-    if(!s||!s.cells){ setStatus('❌ Неверный формат файла'); return; }
-    if(!confirm('Заменить локальные данные данными с GitHub?')){ setStatus('Загрузка отменена'); return; }
-    state=migrate(s); save(); render();
-    setStatus('✅ Загружено с GitHub: '+Object.keys(state.cells).length+' записей');
-  }catch(e){ setStatus('❌ Нет связи с GitHub: '+e.message); }
-}
-function openSettings(msg){
-  const c=ghCfg();
-  document.getElementById('sUser').value=c.user||'';
-  document.getElementById('sRepo').value=c.repo||'';
-  document.getElementById('sToken').value=c.token||'';
-  document.getElementById('sAuto').checked=!!c.auto;
-  document.getElementById('sConfirm').value='';
-  document.getElementById('setMsg').textContent=msg||'';
-  showOverlay(); show('modalSet');
-}
-function saveSettings(){
-  localStorage.setItem(GHKEY,JSON.stringify({
-    user:document.getElementById('sUser').value.trim(),
-    repo:document.getElementById('sRepo').value.trim(),
-    token:document.getElementById('sToken').value.trim(),
-    auto:document.getElementById('sAuto').checked
-  }));
-  setStatus('Настройки сохранены'); closeAll();
-}
-function dangerClear(){
-  if(document.getElementById('sConfirm').value!=='УДАЛИТЬ'){
-    alert('Введите слово УДАЛИТЬ, чтобы подтвердить очистку.'); return;
-  }
-  if(!confirm('Точно удалить ВСЕ записи? Восстановить можно только импортом JSON или с GitHub.')) return;
-  state={v:2,titles:{},cells:{}};
-  for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
-  save(); render(); closeAll();
+    const res=await fetch(url,{headers:ghHeaders(g)});
+    if(!res.ok){ setStatus('Не найдено: '+res.status,false); return; }
+    const j=await res.json();
+    const txt=new TextDecoder().decode(Uint8Array.from(atob(j.content),c=>c.charCodeAt(0)));
+    const s=JSON.parse(txt);
+    if(!s||!s.cells){ setStatus('Файл не похож на картотеку',false); return; }
+    if(!confirm('Заменить текущую картотеку данными с GitHub?')){ setStatus('Загрузка отменена'); return; }
+    state=s; if(!state.titles)state.titles={}; if(!state.v)state.v=2;
+    save(); render(); setStatus('✅ Загружено с GitHub: '+Object.keys(state.cells).length+' записей',true);
+  }catch(e){ setStatus('Ошибка: '+e.message,false); }
 }
 
-// ---------- Импорт/экспорт ----------
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeAll(); });
-document.getElementById('search').addEventListener('input',render);
+/* ================= ЭКСПОРТ/ИМПОРТ ================= */
 function exportJSON(){
   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
@@ -487,11 +503,19 @@ function importJSON(ev){
   const rd=new FileReader();
   rd.onload=()=>{ try{
       const s=JSON.parse(rd.result);
-      if(s&&s.cells){
-        if(!confirm('Заменить текущие данные содержимым файла?')){ ev.target.value=''; return; }
-        state=migrate(s); save(); render();
-        alert('Импортировано: '+Object.keys(state.cells).length+' записей');
-      }
+      if(s&&s.cells){ state=s; if(!state.titles)state.titles={};
+        if(!state.v||state.v<2){
+          const map={};
+          for(const k in state.cells){
+            const m=k.match(/^([AB])-(\d{2})$/);
+            if(m){ const n=parseInt(m[2],10); if(n>=9&&n<=80) map[k]=m[1]+'-'+String(n-8).padStart(2,'0'); }
+          }
+          const nc={};
+          for(const k in state.cells) nc[map[k]||k]=state.cells[k];
+          state.cells=nc;
+        }
+        state.v=2; save(); render();
+        alert('Импортировано: '+Object.keys(state.cells).length+' записей'); }
     }catch(e){ alert('Не удалось прочитать файл: '+e); } };
   rd.readAsText(f); ev.target.value='';
 }
@@ -506,12 +530,17 @@ function exportCSV(){
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download='cartoteka.csv'; a.click();
 }
-
-// селект категорий
-for(const selId of ['fCat','aCat']){
-  const sel=document.getElementById(selId);
-  for(const c in CATS){ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); }
+function clearAll(){
+  if(!confirm('Удалить ВСЕ записи? Сначала сделайте экспорт JSON!')) return;
+  if(prompt('Для подтверждения введите слово УДАЛИТЬ:')!=='УДАЛИТЬ'){ setStatus('Очистка отменена'); return; }
+  state={v:2,titles:{},cells:{}};
+  for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
+  save(); render(); setStatus('Картотека очищена',false);
 }
+
+/* селект категорий */
+const sel=document.getElementById('fCat');
+for(const c in CATS){ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); }
 render();
 </script>
 </body>

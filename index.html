@@ -13,16 +13,23 @@
   body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
        background:var(--bg);color:var(--text);margin:0;padding:16px}
   h1{text-align:center;font-size:22px;margin:8px 0 4px}
-  .subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
-  .controls{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px}
+  .controls{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:8px}
   button{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;
          font-size:13px;transition:transform .15s,opacity .15s}
   button:hover{opacity:.9;transform:translateY(-1px)}
   .btn-primary{background:var(--accent);color:#1a1a1a}
   .btn-sec{background:#2a303c;color:var(--text);border:1px solid var(--border)}
   .btn-danger{background:#5a2a2a;color:#ffcccc}
+  .btn-ok{background:#2d5a2f;color:#d8ffd8}
   .search{padding:9px 14px;border:1px solid var(--border);border-radius:8px;
           background:var(--cell);color:var(--text);width:min(320px,90vw);font-size:14px}
+  .gear{width:42px;height:36px;padding:0;font-size:16px}
+  .status{text-align:center;font-size:12px;color:var(--muted);min-height:16px;margin-bottom:14px}
+  .status.ok{color:var(--ok)} .status.err{color:#ef5350}
+  .banner{max-width:940px;margin:0 auto 14px;background:#33401f;border:1px solid #6a8a2a;
+          color:#d8e8a8;border-radius:10px;padding:10px 14px;font-size:13px;display:none;
+          justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
   .panel{background:var(--panel);border-radius:14px;padding:16px;margin:0 auto 22px;max-width:940px}
   .panel-wide{max-width:1180px}
   .panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -33,6 +40,8 @@
   .g8{grid-template-columns:repeat(8,1fr)}
   .g3{grid-template-columns:repeat(3,1fr)}
   .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:900px){.g8{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:520px){.g8{grid-template-columns:repeat(3,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
   .cell{background:var(--cell);border:1px solid var(--border);border-radius:10px;
         padding:8px;cursor:pointer;min-height:58px;transition:border-color .2s,box-shadow .2s}
   .cell:hover{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,152,0,.55),0 4px 14px rgba(255,152,0,.25);transform:translateY(-2px)}
@@ -48,8 +57,8 @@
   .overlay.show{opacity:1;pointer-events:auto}
   .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);opacity:0;
          pointer-events:none;background:var(--panel);border:1px solid var(--border);border-radius:14px;
-         padding:20px;width:min(440px,92vw);z-index:11;transition:transform .3s cubic-bezier(.2,1.4,.4,1),opacity .25s;
-         box-shadow:0 18px 50px rgba(0,0,0,.5);max-height:86vh;overflow:auto}
+         padding:20px;width:min(460px,94vw);z-index:11;transition:transform .3s cubic-bezier(.2,1.4,.4,1),opacity .25s;
+         box-shadow:0 18px 50px rgba(0,0,0,.5);max-height:88vh;overflow:auto}
   .modal.show{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
   .modal h3{margin:0 0 12px;font-size:16px;color:var(--accent)}
   .modal label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
@@ -57,37 +66,37 @@
         border-radius:8px;background:var(--cell);color:var(--text);font-size:14px;font-family:inherit}
   .modal textarea{resize:vertical;min-height:52px}
   .modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
-  .msg{text-align:center;color:var(--muted);font-size:12px;margin-top:6px;min-height:16px}
-  .suggest{margin-top:10px;font-size:13px;line-height:1.5}
-  .suggest .line{color:var(--muted)}
-  .suggest .line b{color:var(--text)}
-  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .pill{background:#2a303c;border:1px solid var(--border);border-radius:20px;padding:4px 10px;
-        font-size:12px;cursor:pointer;color:var(--text)}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .pill{background:#2a303c;border:1px solid var(--border);border-radius:20px;padding:5px 12px;
+        font-size:12px;color:var(--text);cursor:pointer}
   .pill.sel{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-  .pill:hover{border-color:var(--accent)}
-  .warn{color:#ffcc80;font-size:12px;margin-top:6px}
-  .hr{border:none;border-top:1px solid var(--border);margin:16px 0 8px}
-  input[type=file]{display:none !important}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .hint b{color:var(--text)}
+  input[type=file]{display:none}
 </style>
 </head>
 <body>
 <h1>📦 Картотека радиодеталей</h1>
-<div class="subtitle">Клик по ящичку — записать содержимое. Данные: браузер + синхронизация с GitHub.</div>
+<div class="subtitle">Клик по ящичку — записать содержимое. База: этот браузер + GitHub.</div>
 <div class="controls">
   <input id="search" class="search" placeholder="🔍 Поиск: резистор, 10K, модуль…">
-  <button class="btn-primary" onclick="openSmart()">➕ Добавить деталь</button>
-  <button class="btn-sec" onclick="pushToHub(false)">⬆️ На GitHub</button>
-  <button class="btn-sec" onclick="pullFromHub()">⬇️ С GitHub</button>
+  <button class="btn-primary" onclick="openAdd()">➕ Добавить деталь</button>
+  <button class="btn-sec" onclick="pushToGithub()">⬆️ На GitHub</button>
+  <button class="btn-sec" onclick="pullFromGithub()">⬇️ С GitHub</button>
   <button class="btn-sec" onclick="exportJSON()">⬇️ Экспорт JSON</button>
   <button class="btn-sec" onclick="document.getElementById('importFile').click()">⬆️ Импорт JSON</button>
-  <button class="btn-sec" onclick="openSettings()" title="Настройки">⚙</button>
-  <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none">
+  <button class="btn-sec" onclick="exportCSV()">📄 CSV</button>
+  <button class="btn-sec gear" onclick="openSettings()" title="Настройки">⚙</button>
+  <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
 </div>
-<div id="status" class="msg"></div>
+<div class="status" id="status"></div>
+<div class="banner" id="banner">
+  <span id="bannerText"></span>
+  <span><button class="btn-ok" onclick="bannerLoad()">Загрузить</button>
+  <button class="btn-sec" onclick="document.getElementById('banner').style.display='none'">Позже</button></span>
+</div>
 <div id="app"></div>
 
-<!-- ====== модал ящика ====== -->
 <div class="overlay" id="overlay" onclick="closeModal()"></div>
 <div class="modal" id="modal">
   <h3 id="mTitle">Ящичек</h3>
@@ -102,37 +111,33 @@
   </div>
 </div>
 
-<!-- ====== модал добавления ====== -->
-<div class="overlay" id="ov2" onclick="closeSmart()"></div>
-<div class="modal" id="smart">
+<div class="modal" id="addModal">
   <h3>➕ Добавить деталь</h3>
-  <label>Название (что принесли)</label>
-  <input id="sName" placeholder="например: IRF2804 или 470 µF 16V" oninput="suggest()">
-  <label>Количество</label><input id="sQty" type="number" min="1" value="1">
-  <label>Заметка (необязательно)</label><textarea id="sNote"></textarea>
-  <div id="sug" class="suggest"></div>
-  <div class="modal-actions">
-    <button class="btn-primary" onclick="smartSave()">Записать</button>
-    <button class="btn-sec" onclick="closeSmart()">Закрыть</button>
-  </div>
+  <label>Название (например: IRF2804, 470 µF 16V, 104 керам, 1N4007)</label>
+  <input id="aName" placeholder="название с маркировкой" oninput="renderAdd()">
+  <label>Количество</label>
+  <input id="aQty" type="number" min="0" value="1">
+  <div class="hint" id="aHint"></div>
+  <div class="pills" id="aPills"></div>
+  <div class="modal-actions" id="aActions"></div>
+  <button class="btn-sec" style="margin-top:8px" onclick="closeAdd()">Закрыть</button>
 </div>
 
-<!-- ====== модал настроек ====== -->
-<div class="overlay" id="ov3" onclick="closeSettings()"></div>
-<div class="modal" id="settings">
+<div class="modal" id="setModal">
   <h3>⚙ Настройки</h3>
-  <label>GitHub: имя пользователя</label><input id="gUser" placeholder="ivanov">
-  <label>GitHub: репозиторий (приватный)</label><input id="gRepo" placeholder="cartoteka">
-  <label>Имя файла в репозитории</label><input id="gFile" placeholder="cartoteka.json">
-  <label>Personal access token (Contents: Read and write)</label>
-  <input id="gToken" type="password" placeholder="github_pat_...">
-  <label><input type="checkbox" id="gAuto" style="width:auto;margin-right:6px"> Автосохранение на GitHub (20 сек после изменений)</label>
+  <label>GitHub: имя пользователя</label><input id="sUser" placeholder="evgeniynv86">
+  <label>GitHub: репозиторий</label><input id="sRepo" placeholder="Electronics">
+  <label>Токен (Contents: Read and write; нужен только для записи)</label>
+  <input id="sToken" type="password" placeholder="github_pat_…">
+  <label><input type="checkbox" id="sAuto" style="width:auto;margin-right:6px">Автосохранение на GitHub при каждом изменении</label>
   <div class="modal-actions">
     <button class="btn-primary" onclick="saveSettings()">Сохранить</button>
+    <button class="btn-sec" onclick="testGh()">Проверить связь</button>
+    <button class="btn-danger" onclick="clearAll()">🗑 Очистить всё</button>
     <button class="btn-sec" onclick="closeSettings()">Закрыть</button>
   </div>
-  <hr class="hr">
-  <button class="btn-danger" onclick="clearAll()">🗑 Очистить всё (осторожно!)</button>
+  <div class="hint">Токен хранится только в этом браузере и уходит только на api.github.com.
+  Чтение базы работает и без токена — прямо с адреса GitHub Pages.</div>
 </div>
 
 <script>
@@ -147,8 +152,7 @@ const SECTIONS = [
   {id:'D', title:'Мини-шкафчик D — резисторы (левый, низ)',  type:'mini', cols:3, rows:4},
   {id:'E', title:'Мини-шкафчик E — резисторы (центр)',       type:'mini', cols:3, rows:4},
   {id:'F', title:'Мини-шкафчик F — резерв (справа)',         type:'mini', cols:3, rows:4},
-  {id:'BAT', title:'Держатель батареек', type:'battery', cols:2, rows:1,
-   labels:['AAA','AA']}
+  {id:'BAT', title:'Держатель батареек', type:'battery', cols:2, rows:1, labels:['AAA','AA']}
 ];
 const DEFAULTS = {
   'C-0101':{n:'10K / 1K',c:'Резисторы'}, 'C-0102':{n:'1K',c:'Резисторы'},
@@ -162,75 +166,49 @@ const DEFAULTS = {
   'E-0101':{n:'200 / 10K',c:'Резисторы'}, 'E-0102':{n:'3.3K',c:'Резисторы'},
   'E-0201':{n:'9K / 300K',c:'Резисторы'}, 'E-0202':{n:'695K',c:'Резисторы'}
 };
-const RES_CODES = ['C-0101','C-0102','C-0201','C-0202','C-0301','C-0302','C-0401','C-0402',
-  'D-0101','D-0102','D-0201','D-0202','D-0301','D-0302','D-0401','D-0402',
-  'E-0101','E-0102','E-0201','E-0202'];
 
-/* ================= СЛОВАРЬ КЛАССИФИКАЦИИ =================
-   Порядок важен: первое совпавшее правило побеждает.
-   Новая серия деталей = добавить одну строку сюда. */
+// ===== СЛОВАРЬ КЛАССИФИКАЦИИ — данные, легко дополнять =====
 const RULES = [
-  // модули и дисплеи
-  {cell:'A-39', cat:'Прочее',        re:/oled|ssd1306|дисплей|display/i},
-  {cell:'A-40', cat:'Прочее',        re:/7-?сегм|семисегм|05611|индикатор/i},
-  {cell:'A-38', cat:'Прочее',        re:/вольтметр|амперметр/i},
-  {cell:'A-34', cat:'Модули',        re:/esp32|esp8266|nodemcu|stm32|arduino|нано|nano/i},
-  {cell:'A-37', cat:'Прочее',        re:/релейн|relay/i},
-  {cell:'A-33', cat:'Прочее',        re:/реле|g6b|omron|songle|srd-|srd\d/i},
-  {cell:'A-35', cat:'Прочее',        re:/рокер|kcd|выключат/i},
-  {cell:'A-36', cat:'Прочее',        re:/кнопк/i},
-  {cell:'A-22', cat:'Прочее',        re:/кварц|резонатор|мгц/i},
-  {cell:'A-17', cat:'Прочее',        re:/lm78|l78|ldo|стабилизатор|стабилитрон/i},
-  {cell:'A-19', cat:'Прочее',        re:/74hc|74ls|595|сдвигов/i},
-  {cell:'A-20', cat:'Прочее',        re:/ne555|\b555\b|таймер/i},
-  {cell:'A-18', cat:'Прочее',        re:/lm324|к155|k155|eeprom|24lc|93lc|fan7601|uc38|микросхем|оптопар/i},
-  {cell:'A-32', cat:'Прочее',        re:/dc-?dc|lm2596|xl6009|понижа|повыша|buck|boost/i},
-  {cell:'A-24', cat:'Прочее',        re:/трансформатор|дроссель/i},
-  {cell:'A-25', cat:'Прочее',        re:/индуктив|мкгн|\buh\b|µh/i},
-  {cell:'A-30', cat:'Прочее',        re:/варистор|zov|jy47/i},
-  {cell:'A-31', cat:'Прочее',        re:/ntc|термистор/i},
-  {cell:'A-08', cat:'Прочее',        re:/термопредохр|cutoff|auupo/i},
-  {cell:'A-23', cat:'Прочее',        re:/tda|усилител|lm386/i},
-  // транзисторы
-  {cell:'A-11', cat:'Транзисторы',   re:/\birl|logic[- ]?level/i},
-  {cell:'A-21', cat:'Транзисторы',   re:/ao44|\b4435\b/i},
-  {cell:'A-14', cat:'Транзисторы',   re:/\birf\d|\bstp\d|силов/i},
-  {cell:'A-13', cat:'Транзисторы',   re:/tip\d/i},
-  {cell:'A-09', cat:'Транзисторы',   re:/2n2907/i},
-  {cell:'A-10', cat:'Транзисторы',   re:/2n2222/i},
-  {cell:'A-15', cat:'Транзисторы',   re:/aod|npn|pnp|транзистор|кт\d|1815|945|390|mosfet/i},
-  // диоды
-  {cell:'A-07', cat:'Диоды',         re:/шоттк|mbr|1n58|ss\d/i},
-  {cell:'A-06', cat:'Диоды',         re:/1n\d|диод|выпрям/i},
-  {cell:'A-01', cat:'Диоды',         re:/rgb/i},
-  {cell:'A-05', cat:'Диоды',         re:/led|светодиод/i},
-  // конденсаторы
-  {cell:'A-29', cat:'Конденсаторы',  re:/x2|mkp|cbb|плён|плен/i},
-  {cell:'A-26', cat:'Конденсаторы',  re:/электролит|µf|мкф|\buf\b/i},
-  {cell:'A-28', cat:'Конденсаторы',  re:/керам|пф|\bpf\b|нф|\bnf\b|^\d{2,3}\b/i},
-  {cell:'A-27', cat:'Конденсаторы',  re:/mlcc|высоковольт/i},
+  {cat:'Прочее',       cell:null,   re:/кварц|hc-?49/i},
+  {cat:'Прочее',       cell:'A-24', re:/трансформатор|flyback|ee-?сердеч/i},
+  {cat:'Прочее',       cell:'A-25', re:/дросс|индуктивн|мкгн|uh\b/i},
+  {cat:'Прочее',       cell:'A-30', re:/варистор|zov|jy472/i},
+  {cat:'Прочее',       cell:'A-31', re:/термистор|ntc/i},
+  {cat:'Прочее',       cell:'A-08', re:/термопредохр|thermal cutoff/i},
+  {cat:'Прочее',       cell:'A-17', re:/стабил|lm78|l78|7805|7812|7815|ldo|lt1587/i},
+  {cat:'Прочее',       cell:'A-18', re:/lm324|к155|k155|74ls00|ла3|eeprom|24lc|93lc|fan7601|uc384/i},
+  {cat:'Прочее',       cell:'A-19', re:/74hc595|сдвигов/i},
+  {cat:'Прочее',       cell:'A-20', re:/ne555|555 таймер|таймер/i},
+  {cat:'Прочее',       cell:'A-23', re:/tda|усилител/i},
+  {cat:'Прочее',       cell:'A-32', re:/dc-?dc|lm2596|xl6009|buck|boost|понижа|повыша/i},
+  {cat:'Прочее',       cell:'A-33', re:/g6b|реле g6b/i},
+  {cat:'Прочее',       cell:'A-37', re:/релейн|реле модул|srd-?\d/i},
+  {cat:'Прочее',       cell:'A-34', re:/esp32|esp8266/i},
+  {cat:'Прочее',       cell:'A-35', re:/рокер|kcd|выключател/i},
+  {cat:'Прочее',       cell:'A-36', re:/кнопк/i},
+  {cat:'Прочее',       cell:'A-38', re:/вольтметр|амперметр/i},
+  {cat:'Прочее',       cell:'A-39', re:/oled/i},
+  {cat:'Прочее',       cell:'A-40', re:/семисегмент|7-?сегмент|сегмент/i},
+  {cat:'Транзисторы',  cell:'A-11', re:/\birl/i},
+  {cat:'Транзисторы',  cell:'A-14', re:/\birf\d|stp\d|aod?\d{2,4}f/i},
+  {cat:'Транзисторы',  cell:'A-21', re:/ao44|aod44/i},
+  {cat:'Транзисторы',  cell:'A-13', re:/tip\d|bd\d/i},
+  {cat:'Транзисторы',  cell:'A-09', re:/2n2907|\bpnp\b/i},
+  {cat:'Транзисторы',  cell:'A-10', re:/2n2222|\bnpn\b/i},
+  {cat:'Транзисторы',  cell:'A-15', re:/кт9|kt9|2sc|2n\d|4n60|c1815|c945|транзистор/i},
+  {cat:'Диоды',        cell:'A-06', re:/1n400\d|1n540\d|выпрямител/i},
+  {cat:'Диоды',        cell:'A-07', re:/шоттки|1n58|mbr|ss\d\d|sr\d\d/i},
+  {cat:'Диоды',        cell:'A-01', re:/rgb|светодиод|led/i},
+  {cat:'Диоды',        cell:'A-05', re:/диод/i},
+  {cat:'Конденсаторы', cell:'A-29', re:/x2|mkp|cbb|пл[её]н/i},
+  {cat:'Конденсаторы', cell:'A-26', re:/электрол|al-el/i},
+  {cat:'Конденсаторы', cell:'A-27', re:/высоковольт|y2|x1|mlcc/i},
+  {cat:'Конденсаторы', cell:'A-28', re:/керам|ceramic|дисков/i}
 ];
-/* а это — значения, которые обрабатываются особым образом */
-function classify(name){
-  const n = norm(name);
-  for(const r of RULES){ if(r.re.test(n)) return r; }
-  if(/резистор|\bом|ком\b|\bк\b|\bк[ом]|резист/i.test(n)){
-    const m = n.match(/(\d+[.,]?\d*)\s*(k|к|м|m|ом|r)?/i);
-    if(m){
-      const v = m[1].replace(',','.')+(m[2]?m[2].toLowerCase():'');
-      for(const code of RES_CODES){
-        const d = state.cells[code];
-        if(d && d.n && norm(d.n).includes(v)) return {cell:code, cat:'Резисторы'};
-      }
-    }
-    return {cell:null, cat:'Резисторы'};
-  }
-  return {cell:null, cat:'Прочее'};
-}
 
-const KEY='cartoteka_v1';
+const KEY='cartoteka_v1', GKEY='cartoteka_gh';
 let state=JSON.parse(localStorage.getItem(KEY)||'null');
-if(!state){ state={v:2,titles:{},cells:{}};
+if(!state){ state={v:2,titles:{},cells:{},savedAt:null};
   for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
   save();
 }
@@ -244,7 +222,12 @@ if(!state.v || state.v<2){
   for(const k in state.cells) nc[map[k]||k]=state.cells[k];
   state.cells=nc; state.v=2; save();
 }
-function save(){ localStorage.setItem(KEY,JSON.stringify(state)); scheduleAuto(); }
+if(!state.titles) state.titles={};
+
+function save(){ state.savedAt=new Date().toISOString(); localStorage.setItem(KEY,JSON.stringify(state)); schedulePush(); }
+function ghCfg(){ try{ return JSON.parse(localStorage.getItem(GKEY)||'null')||{}; }catch(e){ return {}; } }
+function pagesBase(){ const c=ghCfg();
+  return (c.user&&c.repo)?'https://'+c.user.toLowerCase()+'.github.io/'+c.repo.replace(/^\/|\/$/g,'')+'/':null; }
 
 function cellCode(sec,r,c){
   if(sec.type==='deko') return sec.id+'-'+String((r-1)*sec.cols+c).padStart(2,'0');
@@ -258,7 +241,7 @@ function render(){
     const title=(state.titles&&state.titles[sec.id])||sec.title;
     const p=document.createElement('div');
     p.className='panel'+(sec.type==='deko'?' panel-wide':'');
-    p.innerHTML='<div class="panel-head"><div class="panel-title">'+esc(title)+
+    p.innerHTML='<div class="panel-head"><div class="panel-title">'+title+
       '</div><button class="rename-btn" onclick="rename(\''+sec.id+'\')">✏ переименовать</button></div>';
     const g=document.createElement('div');
     g.className='grid '+(sec.cols===8?'g8':(sec.cols===3?'g3':'g2'));
@@ -272,7 +255,7 @@ function render(){
       if(name) el.title=name;
       el.innerHTML='<div class="code">'+code+'</div><div class="row">'+
         (name?'<span class="dot" style="background:'+(CATS[d.c]||'#f06292')+'"></span>':'')+
-        '<span class="name">'+esc(name)+'</span></div>';
+        '<span class="name">'+(name||'')+'</span></div>';
       el.onclick=()=>{ el.classList.add('pop'); setTimeout(()=>openModal(sec,code),260); };
       g.appendChild(el);
     }
@@ -293,6 +276,8 @@ function openModal(sec,code){
 function closeModal(){
   document.getElementById('overlay').classList.remove('show');
   document.getElementById('modal').classList.remove('show');
+  document.getElementById('addModal').classList.remove('show');
+  document.getElementById('setModal').classList.remove('show');
 }
 function saveCell(){
   const n=document.getElementById('fName').value.trim();
@@ -305,195 +290,239 @@ function clearCell(){ delete state.cells[current.code]; save(); render(); closeM
 function rename(id){
   const sec=SECTIONS.find(s=>s.id===id);
   const t=prompt('Новое название секции:',(state.titles&&state.titles[id])||sec.title);
-  if(t&&t.trim()){ if(!state.titles)state.titles={}; state.titles[id]=t.trim(); save(); render(); }
+  if(t&&t.trim()){ state.titles[id]=t.trim(); save(); render(); }
 }
-
-/* ================= УМНОЕ ДОБАВЛЕНИЕ ================= */
-let chosen=null;
-function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,' ').trim(); }
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function tokens(s){ return norm(s).split(/[^a-zа-яё0-9µ.]+/).filter(Boolean); }
-function firstFree(){
-  for(const sec of SECTIONS){
-    if(sec.type!=='deko') continue;
-    for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
-      const code=cellCode(sec,r,c);
-      if(!state.cells[code]||!state.cells[code].n) return code;
-    }
-  }
-  return 'A-72';
-}
-function openSmart(){
-  document.getElementById('sName').value='';
-  document.getElementById('sQty').value=1;
-  document.getElementById('sNote').value='';
-  document.getElementById('sug').innerHTML='<div class="line">Введите название — подскажу категорию и ящик.</div>';
-  chosen=null;
-  document.getElementById('ov2').classList.add('show');
-  document.getElementById('smart').classList.add('show');
-  document.getElementById('sName').focus();
-}
-function closeSmart(){
-  document.getElementById('ov2').classList.remove('show');
-  document.getElementById('smart').classList.remove('show');
-}
-function suggest(){
-  const name=document.getElementById('sName').value;
-  const sug=document.getElementById('sug');
-  if(!norm(name)){ sug.innerHTML=''; chosen=null; return; }
-  const r=classify(name);
-  // поиск похожих среди уже лежащих
-  const tk=tokens(name); const cands=[];
-  for(const code in state.cells){
-    const d=state.cells[code]; if(!d||!d.n) continue;
-    const dt=tokens(d.n);
-    let score=tk.filter(t=>dt.includes(t)).length;
-    if(norm(d.n)===norm(name)) score+=2;
-    if(score) cands.push({code:code,score:score,name:d.n});
-  }
-  cands.sort((a,b)=>b.score-a.score);
-  const same=cands.length?cands[0]:null;
-  let target, mode, extra='';
-  if(same && same.score>=2){
-    target=same.code; mode='appendSame';
-    extra='<div class="pills" id="candPills"><span class="pill sel" onclick="pick(\''+same.code+'\')">📍 '+same.code+' — '+esc(same.name)+'</span></div>';
-  } else if(r.cell){
-    target=r.cell; mode = (state.cells[target]&&state.cells[target].n) ? 'appendNote':'new';
-    extra='';
-  } else if(cands.length){
-    target=cands[0].code; mode='appendNote';
-  } else {
-    target=firstFree(); mode='new';
-  }
-  chosen={cell:target,cat:r.cat,mode:mode};
-  let html='<div class="line">Категория: <b>'+esc(r.cat)+'</b> · Ящик: <b>'+target+'</b>';
-  const cur=state.cells[target];
-  if(cur&&cur.n){
-    html+=' — там уже лежит: <b>'+esc(cur.n)+'</b>';
-    if(mode==='appendSame') html+='<br>Совпадение! Запишу в этот же ящик, количество сложится.';
-    else html+='<br>Запишу <b>'+esc(n)+'</b>'+' строкой в заметку этого ящика (или выберите другой ящик):';
-  } else html+=' — свободен, запишу сюда.';
-  html+='</div>';
-  // pills: похожие + свободные
-  let pills='';
-  for(const cd of cands.slice(0,3)) if(cd.code!==target)
-    pills+='<span class="pill" onclick="pick(\''+cd.code+'\')">'+cd.code+' — '+esc(cd.name)+'</span>';
-  if(!cur||!cur.n){
-    for(const cd of cands.slice(0,3))
-      pills+='<span class="pill" onclick="pick(\''+cd.code+'\')">'+cd.code+' — '+esc(cd.name)+'</span>';
-  }
-  if(pills) html+='<div class="pills">'+pills+'</div>';
-  sug.innerHTML=html;
-}
-function pick(code){
-  if(!chosen) return;
-  chosen.cell=code;
-  const cur=state.cells[code];
-  chosen.mode=(cur&&cur.n)?'appendNote':'new';
-  suggest(); // перерисует, но chosen.cell сохранится — перезапишем вручную
-  chosen.cell=code; chosen.mode=(cur&&cur.n)?'appendNote':'new';
-}
-function smartSave(){
-  const n=document.getElementById('sName').value.trim();
-  const q=parseInt(document.getElementById('sQty').value)||0;
-  const note=document.getElementById('sNote').value.trim();
-  if(!n){ alert('Введите название детали'); return; }
-  if(!chosen) suggest();
-  if(!chosen){ alert('Не удалось определить ящик'); return; }
-  const code=chosen.cell, d=state.cells[code]||{};
-  const stamp=new Date().toLocaleDateString('ru-RU');
-  if(!d.n){
-    state.cells[code]={n:n,c:chosen.cat,qty:q||'',note:note};
-  } else if(norm(d.n)===norm(n)){
-    state.cells[code].qty=((parseInt(d.qty)||0)+q)||'';
-    if(note) state.cells[code].note=((d.note||'')+'\n'+note).trim();
-  } else {
-    state.cells[code].note=((d.note||'')+'\n+ '+stamp+': '+n+' ×'+(q||1)+(note?', '+note:'')).trim();
-  }
-  save(); render(); closeSmart();
-  setStatus('✅ '+n+' → '+code,true);
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeSmart(); closeSettings(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 document.getElementById('search').addEventListener('input',render);
 
-/* ================= GITHUB СИНХРОНИЗАЦИЯ ================= */
-const GKEY='cartoteka_git_v1';
-function gh(){ try{ return JSON.parse(localStorage.getItem(GKEY)||'null'); }catch(e){ return null; } }
-function setStatus(msg,ok){
-  const el=document.getElementById('status');
-  el.textContent=msg||'';
-  el.style.color=ok===undefined?'var(--muted)':(ok?'var(--ok)':'#ff8a80');
+// ===== УМНОЕ ДОБАВЛЕНИЕ =====
+function parseVal(tok){
+  const m=String(tok).trim().match(/^([\d.,]+)\s*([kкmм])?\s*(ом|Ω|r)?$/i);
+  if(!m) return null;
+  let v=parseFloat(m[1].replace(',','.'));
+  if(isNaN(v)) return null;
+  const suf=(m[2]||'').toLowerCase();
+  if(suf==='k'||suf==='к') v*=1000;
+  if(suf==='m'||suf==='м') v*=1000000;
+  return Math.round(v);
 }
-let autoTimer=null;
-function scheduleAuto(){
-  const g=gh(); if(!g||!g.auto) return;
-  clearTimeout(autoTimer);
-  autoTimer=setTimeout(()=>pushToHub(true),20000);
+function resTokens(name){
+  return String(name).split(/[/,]+/).map(t=>parseVal(t)).filter(v=>v!==null);
 }
-function openSettings(){
-  const g=gh()||{};
-  document.getElementById('gUser').value=g.user||'';
-  document.getElementById('gRepo').value=g.repo||'';
-  document.getElementById('gFile').value=g.file||'cartoteka.json';
-  document.getElementById('gToken').value=g.token||'';
-  document.getElementById('gAuto').checked=!!g.auto;
-  document.getElementById('ov3').classList.add('show');
-  document.getElementById('settings').classList.add('show');
-}
-function closeSettings(){
-  document.getElementById('ov3').classList.remove('show');
-  document.getElementById('settings').classList.remove('show');
-}
-function saveSettings(){
-  const g={user:document.getElementById('gUser').value.trim(),
-           repo:document.getElementById('gRepo').value.trim(),
-           file:document.getElementById('gFile').value.trim()||'cartoteka.json',
-           token:document.getElementById('gToken').value.trim(),
-           auto:document.getElementById('gAuto').checked};
-  localStorage.setItem(GKEY,JSON.stringify(g));
-  closeSettings(); setStatus('Настройки сохранены',true);
-}
-function ghHeaders(g){
-  return {'Authorization':'Bearer '+g.token,'Accept':'application/vnd.github+json'};
-}
-async function pushToHub(silent){
-  const g=gh();
-  if(!g||!g.user||!g.repo||!g.token){
-    if(!silent){ openSettings(); setStatus('Заполните настройки GitHub',false); }
-    return;
+function scanResistors(ohms){
+  const out=[];
+  for(const sec of SECTIONS){
+    if(sec.type!=='mini') continue;
+    for(let r=1;r<=sec.rows;r++) for(let c=1;c<=sec.cols;c++){
+      const code=cellCode(sec,r,c), d=state.cells[code];
+      if(!d) continue;
+      if(resTokens(d.n).includes(ohms)) out.push({code,label:code+' — '+d.n});
+    }
   }
-  setStatus('⬆️ Сохраняю на GitHub…');
-  const url='https://api.github.com/repos/'+g.user+'/'+g.repo+'/contents/'+g.file;
-  const content=btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))));
-  const body={message:'Картотека: обновление '+new Date().toLocaleString('ru-RU'),content:content};
-  try{
-    const head=await fetch(url,{headers:ghHeaders(g)});
-    if(head.ok){ const j=await head.json(); if(j.sha) body.sha=j.sha; }
-    const res=await fetch(url,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},ghHeaders(g)),body:JSON.stringify(body)});
-    if(res.ok) setStatus('✅ Сохранено на GitHub ('+g.repo+'/'+g.file+')',true);
-    else{ const e=await res.json().catch(()=>({})); setStatus('Ошибка GitHub: '+(e.message||res.status),false); }
-  }catch(e){ setStatus('Ошибка сети: '+e.message,false); }
+  return out;
 }
-async function pullFromHub(){
-  const g=gh();
-  if(!g||!g.user||!g.repo||!g.token){ openSettings(); setStatus('Заполните настройки GitHub',false); return; }
-  setStatus('⬇️ Загружаю с GitHub…');
-  const url='https://api.github.com/repos/'+g.user+'/'+g.repo+'/contents/'+g.file;
-  try{
-    const res=await fetch(url,{headers:ghHeaders(g)});
-    if(!res.ok){ setStatus('Не найдено: '+res.status,false); return; }
-    const j=await res.json();
-    const txt=new TextDecoder().decode(Uint8Array.from(atob(j.content),c=>c.charCodeAt(0)));
-    const s=JSON.parse(txt);
-    if(!s||!s.cells){ setStatus('Файл не похож на картотеку',false); return; }
-    if(!confirm('Заменить текущую картотеку данными с GitHub?')){ setStatus('Загрузка отменена'); return; }
-    state=s; if(!state.titles)state.titles={}; if(!state.v)state.v=2;
-    save(); render(); setStatus('✅ Загружено с GitHub: '+Object.keys(state.cells).length+' записей',true);
-  }catch(e){ setStatus('Ошибка: '+e.message,false); }
+function findFreeCell(){
+  for(const id of ['A','B'])
+    for(let i=41;i<=72;i++){ const c=id+'-'+String(i).padStart(2,'0');
+      if(!state.cells[c]||!state.cells[c].n) return c; }
+  for(let i=1;i<=72;i++){ const c='B-'+String(i).padStart(2,'0');
+    if(!state.cells[c]||!state.cells[c].n) return c; }
+  return null;
+}
+function similarCells(name){
+  const toks=normTokens(name);
+  if(!toks.length) return [];
+  const out=[];
+  for(const k in state.cells){
+    const d=state.cells[k]; if(!d||!d.n) continue;
+    const ct=normTokens(d.n);
+    if(ct.some(t=>toks.includes(t))) out.push({code:k,label:k+' — '+d.n});
+  }
+  return out.slice(0,6);
+}
+function normTokens(s){
+  return String(s).toLowerCase().replace(/[^a-zа-яё0-9.,µмк]+/gi,' ').split(/\s+/)
+    .filter(t=>t&&!['шт','в','для','с','и','на'].includes(t));
+}
+function classify(name){
+  const n=name.toLowerCase().trim();
+  // резистор: есть единица сопротивления или одиночное число без ёмкостных слов
+  if(/(ом|Ω|ohm|k\b|к\b|kΩ|кΩ)/i.test(n) || /^\s*[\d.,]+\s*[kкmм]?\s*(ом|Ω|r)?\s*$/i.test(n)){
+    const vals=resTokens(n);
+    if(vals.length){
+      const hits=[];
+      for(const v of vals) hits.push(...scanResistors(v));
+      if(hits.length) return {cat:'Резисторы',cell:hits[0].code,alts:hits,
+        why:'Резистор '+n+': совпадение в ящиках резисторов'};
+      const free=findFreeCell();
+      return {cat:'Резисторы',cell:free||'F-0101',why:'Новый номинал резистора — свободный ящик'};
+    }
+  }
+  for(const r of RULES){
+    if(r.re.test(n)) return {cat:r.cat,cell:r.cell||findFreeCell(),alts:null,
+      why:'Правило: '+(r.cell||'новая ячейка')};
+  }
+  // 3-значный код без слов — вероятно керамика, предупредим
+  const code=n.match(/^\s*(\d{1,4})\s*$/);
+  if(code) return {cat:'Конденсаторы',cell:'A-28',
+    why:'Похоже на код керамики ('+code[1]+'). Если это резистор — выберите ящик из C/D/E вручную'};
+  return {cat:'Прочее',cell:findFreeCell(),why:'Не распознал — свободная ячейка'};
+}
+let addCell=null, addAlts=[];
+function openAdd(){
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('addModal').classList.add('show');
+  document.getElementById('aName').value='';
+  document.getElementById('aQty').value='1';
+  renderAdd();
+}
+function closeAdd(){ closeModal(); }
+function renderAdd(){
+  const name=document.getElementById('aName').value.trim();
+  const pills=document.getElementById('aPills'), act=document.getElementById('aActions');
+  const hint=document.getElementById('aHint');
+  pills.innerHTML=''; act.innerHTML=''; addCell=null; addAlts=[];
+  if(!name){ hint.textContent='Введите название — я сам определю категорию и предложу ящик.';
+    return; }
+  const cl=classify(name);
+  const d=cl.cell?state.cells[cl.cell]:null;
+  hint.innerHTML='Категория: <b>'+cl.cat+'</b>. '+cl.why+(d?'<br>В ящике сейчас: <b>'+d.n+'</b>':'');
+  const mk=(cell,label,sel)=>{ const b=document.createElement('button');
+    b.className='pill'+(sel?' sel':''); b.textContent=label;
+    b.onclick=()=>{ addCell=cell; renderAdd(true); }; pills.appendChild(b); };
+  if(cl.cell){ addCell=cl.cell; mk(cl.cell,'→ '+cl.cell, true); }
+  (cl.alts||[]).forEach(a=>{ if(a.code!==cl.cell) mk(a.code,'или '+a.label); });
+  similarCells(name).forEach(s=>{ if(s.code!==cl.cell) mk(s.code,'или '+s.label); });
+  // строки действий
+  const q=document.getElementById('aQty').value||'1';
+  const same=d && normTokens(d.n)[0]===normTokens(name)[0] && normTokens(d.n).length===normTokens(name).length;
+  const addBtn=(txt,cls,fn)=>{ const b=document.createElement('button'); b.className=cls;
+    b.textContent=txt; b.onclick=fn; act.appendChild(b); };
+  if(addCell){
+    if(!d){ addBtn('Записать в '+addCell,'btn-primary',()=>commitAdd(name,q,'new')); }
+    else if(same){ addBtn('Записать в '+addCell+' (добавить к лежащему)','btn-primary',()=>commitAdd(name,q,'merge')); }
+    else{
+      addBtn('Дописать к '+addCell,'btn-primary',()=>commitAdd(name,q,'append'));
+      addBtn('Заменить содержимое','btn-danger',()=>commitAdd(name,q,'replace'));
+    }
+  }
+}
+function commitAdd(name,q,mode){
+  const today=new Date().toLocaleDateString('ru-RU');
+  const d=state.cells[addCell];
+  if(mode==='new'){ state.cells[addCell]={n:name,c:lastCat(),qty:q,note:'доб. '+today}; }
+  else if(mode==='merge'){
+    d.qty=(parseInt(d.qty||'0',10)+parseInt(q||'0',10))||q;
+    d.note=(d.note?d.note+'\n':'')+'+ '+today+': '+name+' ×'+q;
+  }
+  else if(mode==='append'){
+    d.note=(d.note?d.note+'\n':'')+'+ '+today+': '+name+' ×'+q+' (категория: '+lastCat()+')';
+  }
+  else if(mode==='replace'){
+    state.cells[addCell]={n:name,c:lastCat(),qty:q,note:'замена '+today+'. Было: '+d.n};
+  }
+  save(); render(); closeAdd();
+  status('Записано в '+addCell+': '+name,true);
+}
+function lastCat(){
+  const n=document.getElementById('aName').value.trim();
+  return classify(n).cat;
 }
 
-/* ================= ЭКСПОРТ/ИМПОРТ ================= */
+// ===== GITHUB =====
+let pushTimer=null;
+function schedulePush(){ const c=ghCfg(); if(c.token&&c.user&&c.repo&&c.auto){
+  clearTimeout(pushTimer); pushTimer=setTimeout(pushToGithub,3000); } }
+function status(msg,ok,err){ const s=document.getElementById('status');
+  s.textContent=msg; s.className='status '+(err?'err':(ok?'ok':'')); }
+async function pushToGithub(){
+  const c=ghCfg();
+  if(!c.user||!c.repo||!c.token){ openSettings(); status('Заполните настройки GitHub',false,true); return; }
+  status('⬆️ Сохраняю на GitHub…');
+  save();
+  const body={message:'Картотека: обновление '+new Date().toLocaleString('ru-RU'),
+    content:btoa(unescape(encodeURIComponent(JSON.stringify(state,null,2))))};
+  try{
+    let sha=null;
+    const r0=await fetch('https://api.github.com/repos/'+c.user+'/'+c.repo+'/contents/cartoteka.json',
+      {headers:{Authorization:'Bearer '+c.token}});
+    if(r0.ok){ const j=await r0.json(); sha=j.sha; }
+    const r=await fetch('https://api.github.com/repos/'+c.user+'/'+c.repo+'/contents/cartoteka.json',
+      {method:'PUT',headers:{Authorization:'Bearer '+c.token,'Content-Type':'application/json'},
+       body:JSON.stringify(Object.assign({sha},body))});
+    if(r.ok){ status('✅ Сохранено на GitHub',true); }
+    else{ const e=await r.json().catch(()=>({}));
+      status('Ошибка GitHub: '+(e.message||r.status),false,true); }
+  }catch(e){ status('Ошибка сети: '+e,false,true); }
+}
+async function fetchRemote(){
+  const c=ghCfg();
+  const base=pagesBase();
+  if(base){
+    try{
+      const r=await fetch(base+'cartoteka.json?t='+Date.now());
+      if(r.ok){ const j=await r.json(); if(j&&j.cells) return {data:j,src:'pages'}; }
+    }catch(e){}
+  }
+  if(c.user&&c.repo&&c.token){
+    try{
+      const r=await fetch('https://api.github.com/repos/'+c.user+'/'+c.repo+'/contents/cartoteka.json',
+        {headers:{Authorization:'Bearer '+c.token}});
+      if(r.ok){ const j=await r.json();
+        const data=JSON.parse(decodeURIComponent(escape(atob(j.content.replace(/\s/g,'')))));
+        return {data,src:'api'}; }
+    }catch(e){}
+  }
+  return null;
+}
+async function applyRemote(){
+  const res=await fetchRemote();
+  if(!res){ status('База на GitHub недоступна (нет файла или токена)',false,true); return; }
+  const rem=res.data;
+  if(!confirm('Заменить текущую картотеку базой с GitHub'+(res.src==='pages'?' (Pages, без токена)':'')+'?')) return;
+  state=rem; if(!state.titles) state.titles={};
+  localStorage.setItem(KEY,JSON.stringify(state)); render();
+  status('✅ Загружено с GitHub ('+(res.src==='pages'?'Pages':'API')+')',true);
+}
+function pullFromGithub(){ applyRemote(); }
+function openSettings(){
+  const c=ghCfg();
+  document.getElementById('sUser').value=c.user||'';
+  document.getElementById('sRepo').value=c.repo||'';
+  document.getElementById('sToken').value=c.token||'';
+  document.getElementById('sAuto').checked=!!c.auto;
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('setModal').classList.add('show');
+}
+function closeSettings(){ closeModal(); }
+function saveSettings(){
+  localStorage.setItem(GKEY,JSON.stringify({
+    user:document.getElementById('sUser').value.trim(),
+    repo:document.getElementById('sRepo').value.trim(),
+    token:document.getElementById('sToken').value.trim(),
+    auto:document.getElementById('sAuto').checked
+  }));
+  closeSettings(); status('Настройки сохранены',true);
+}
+async function testGh(){
+  saveSettings();
+  const c=ghCfg();
+  if(!c.user||!c.repo){ status('Заполните пользователя и репозиторий',false,true); return; }
+  status('Проверяю…');
+  const base=pagesBase();
+  if(base){ try{ const r=await fetch(base+'cartoteka.json?t='+Date.now());
+    if(r.ok){ status('✅ Чтение по Pages работает: '+base,false,true); return; } }catch(e){} }
+  if(c.token){ try{
+    const r=await fetch('https://api.github.com/repos/'+c.user+'/'+c.repo,{headers:{Authorization:'Bearer '+c.token}});
+    status(r.ok?'✅ Токен и репозиторий в порядке':'Ошибка токена/репозитория: '+r.status,r.ok,!r.ok);
+    return;
+  }catch(e){ status('Ошибка сети',false,true); return; } }
+  status('Pages не отвечает, токен не задан. Проверьте адрес.',false,true);
+}
+
+// ===== ЭКСПОРТ/ИМПОРТ =====
 function exportJSON(){
+  save();
   const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download='cartoteka.json'; a.click();
@@ -503,7 +532,8 @@ function importJSON(ev){
   const rd=new FileReader();
   rd.onload=()=>{ try{
       const s=JSON.parse(rd.result);
-      if(s&&s.cells){ state=s; if(!state.titles)state.titles={};
+      if(s&&s.cells){
+        state=s; if(!state.titles) state.titles={};
         if(!state.v||state.v<2){
           const map={};
           for(const k in state.cells){
@@ -514,9 +544,10 @@ function importJSON(ev){
           for(const k in state.cells) nc[map[k]||k]=state.cells[k];
           state.cells=nc;
         }
-        state.v=2; save(); render();
-        alert('Импортировано: '+Object.keys(state.cells).length+' записей'); }
-    }catch(e){ alert('Не удалось прочитать файл: '+e); } };
+        state.v=2; localStorage.setItem(KEY,JSON.stringify(state)); render();
+        status('Импортировано: '+Object.keys(state.cells).length+' записей',true);
+      }
+    }catch(e){ status('Не удалось прочитать файл: '+e,false,true); } };
   rd.readAsText(f); ev.target.value='';
 }
 function exportCSV(){
@@ -531,16 +562,36 @@ function exportCSV(){
   a.href=URL.createObjectURL(blob); a.download='cartoteka.csv'; a.click();
 }
 function clearAll(){
-  if(!confirm('Удалить ВСЕ записи? Сначала сделайте экспорт JSON!')) return;
-  if(prompt('Для подтверждения введите слово УДАЛИТЬ:')!=='УДАЛИТЬ'){ setStatus('Очистка отменена'); return; }
-  state={v:2,titles:{},cells:{}};
+  if(!confirm('Удалить ВСЕ записи? Сначала экспортируйте резерв!')) return;
+  if(prompt('Для подтверждения введите слово УДАЛИТЬ:')!=='УДАЛИТЬ') return;
+  state={v:2,titles:{},cells:{},savedAt:null};
   for(const k in DEFAULTS) state.cells[k]=Object.assign({},DEFAULTS[k],{qty:'',note:''});
-  save(); render(); setStatus('Картотека очищена',false);
+  save(); render(); closeSettings(); status('Все записи удалены',true);
 }
 
-/* селект категорий */
+// селект категорий
 const sel=document.getElementById('fCat');
 for(const c in CATS){ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); }
+
+// проверка свежести базы на GitHub при загрузке
+window.addEventListener('load', async ()=>{
+  const c=ghCfg();
+  if(!c.user||!c.repo) return;
+  try{
+    const base=pagesBase();
+    if(!base) return;
+    const r=await fetch(base+'cartoteka.json?t='+Date.now());
+    if(!r.ok) return;
+    const rem=await r.json();
+    if(rem&&rem.savedAt&&state.savedAt&&rem.savedAt>state.savedAt){
+      document.getElementById('bannerText').textContent='📦 На GitHub база свежее локальной ('+
+        new Date(rem.savedAt).toLocaleString('ru-RU')+')';
+      document.getElementById('banner').style.display='flex';
+    }
+  }catch(e){}
+});
+function bannerLoad(){ document.getElementById('banner').style.display='none'; applyRemote(); }
+
 render();
 </script>
 </body>
